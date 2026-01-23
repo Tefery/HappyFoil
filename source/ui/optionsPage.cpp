@@ -141,6 +141,18 @@ namespace inst::ui {
         auto sigPatchesUrlOption = pu::ui::elm::MenuItem::New("options.menu_items.sig_url"_lang + inst::util::shortenString(inst::config::sigPatchesUrl, 42, false));
         sigPatchesUrlOption->SetColor(COLOR("#FFFFFFFF"));
         this->menu->AddItem(sigPatchesUrlOption);
+        std::string shopUrlDisplay = inst::config::shopUrl.empty() ? "-" : inst::util::shortenString(inst::config::shopUrl, 42, false);
+        auto shopUrlOption = pu::ui::elm::MenuItem::New("options.menu_items.shop_url"_lang + shopUrlDisplay);
+        shopUrlOption->SetColor(COLOR("#FFFFFFFF"));
+        this->menu->AddItem(shopUrlOption);
+        std::string shopUserDisplay = inst::config::shopUser.empty() ? "-" : inst::util::shortenString(inst::config::shopUser, 42, false);
+        auto shopUserOption = pu::ui::elm::MenuItem::New("options.menu_items.shop_user"_lang + shopUserDisplay);
+        shopUserOption->SetColor(COLOR("#FFFFFFFF"));
+        this->menu->AddItem(shopUserOption);
+        std::string shopPassDisplay = inst::config::shopPass.empty() ? "-" : "********";
+        auto shopPassOption = pu::ui::elm::MenuItem::New("options.menu_items.shop_pass"_lang + shopPassDisplay);
+        shopPassOption->SetColor(COLOR("#FFFFFFFF"));
+        this->menu->AddItem(shopPassOption);
         auto languageOption = pu::ui::elm::MenuItem::New("options.menu_items.language"_lang + this->getMenuLanguage(inst::config::languageSetting));
         languageOption->SetColor(COLOR("#FFFFFFFF"));
         this->menu->AddItem(languageOption);
@@ -200,6 +212,8 @@ namespace inst::ui {
                         mainApp->mainPage->appVersionText->SetX(480);
                         mainApp->netinstPage->titleImage->SetX(0);
                         mainApp->netinstPage->appVersionText->SetX(480);
+                        mainApp->shopinstPage->titleImage->SetX(0);
+                        mainApp->shopinstPage->appVersionText->SetX(480);
                         mainApp->optionspage->titleImage->SetX(0);
                         mainApp->optionspage->appVersionText->SetX(480);
                         mainApp->sdinstPage->titleImage->SetX(0);
@@ -217,6 +231,8 @@ namespace inst::ui {
                         mainApp->mainPage->appVersionText->SetX(367);
                         mainApp->netinstPage->titleImage->SetX(-113);
                         mainApp->netinstPage->appVersionText->SetX(367);
+                        mainApp->shopinstPage->titleImage->SetX(-113);
+                        mainApp->shopinstPage->appVersionText->SetX(367);
                         mainApp->optionspage->titleImage->SetX(-113);
                         mainApp->optionspage->appVersionText->SetX(367);
                         mainApp->sdinstPage->titleImage->SetX(-113);
@@ -236,6 +252,30 @@ namespace inst::ui {
                     }
                     break;
                 case 7:
+                    keyboardResult = inst::util::softwareKeyboard("options.shop.url_hint"_lang, inst::config::shopUrl.c_str(), 200);
+                    if (keyboardResult.size() > 0) {
+                        inst::config::shopUrl = keyboardResult;
+                        inst::config::setConfig();
+                        this->setMenuText();
+                    }
+                    break;
+                case 8:
+                    keyboardResult = inst::util::softwareKeyboard("options.shop.user_hint"_lang, inst::config::shopUser.c_str(), 100);
+                    if (keyboardResult.size() > 0) {
+                        inst::config::shopUser = keyboardResult;
+                        inst::config::setConfig();
+                        this->setMenuText();
+                    }
+                    break;
+                case 9:
+                    keyboardResult = inst::util::softwareKeyboard("options.shop.pass_hint"_lang, inst::config::shopPass.c_str(), 100);
+                    if (keyboardResult.size() > 0) {
+                        inst::config::shopPass = keyboardResult;
+                        inst::config::setConfig();
+                        this->setMenuText();
+                    }
+                    break;
+                case 10:
                     languageList = languageStrings;
                     languageList.push_back("options.language.system_language"_lang);
                     rc = inst::ui::mainApp->CreateShowDialog("options.language.title"_lang, "options.language.desc"_lang, languageList, false);
@@ -281,7 +321,7 @@ namespace inst::ui {
                     mainApp->FadeOut();
                     mainApp->Close();
                     break;
-                case 8:
+                case 11:
                     if (inst::util::getIPAddress() == "1.0.0.127") {
                         inst::ui::mainApp->CreateShowDialog("main.net.title"_lang, "main.net.desc"_lang, {"common.ok"_lang}, true);
                         break;
@@ -293,7 +333,7 @@ namespace inst::ui {
                     }
                     this->askToUpdate(downloadUrl);
                     break;
-                case 9:
+                case 12:
                     inst::ui::mainApp->CreateShowDialog("options.credits.title"_lang, "options.credits.desc"_lang, {"common.close"_lang}, true);
                     break;
                 default:

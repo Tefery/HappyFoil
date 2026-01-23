@@ -10,6 +10,7 @@ namespace inst::ui {
             PU_SMART_CTOR(MainPage)
             void installMenuItem_Click();
             void netInstallMenuItem_Click();
+            void shopInstallMenuItem_Click();
             void usbInstallMenuItem_Click();
             void sigPatchesMenuItem_Click();
             void settingsMenuItem_Click();
@@ -27,6 +28,7 @@ namespace inst::ui {
             pu::ui::elm::Menu::Ref optionMenu;
             pu::ui::elm::MenuItem::Ref installMenuItem;
             pu::ui::elm::MenuItem::Ref netInstallMenuItem;
+            pu::ui::elm::MenuItem::Ref shopInstallMenuItem;
             pu::ui::elm::MenuItem::Ref usbInstallMenuItem;
             pu::ui::elm::MenuItem::Ref sigPatchesMenuItem;
             pu::ui::elm::MenuItem::Ref settingsMenuItem;

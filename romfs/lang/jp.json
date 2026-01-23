@@ -3,6 +3,7 @@
         "menu": {
             "sd": "SDカードからインストール",
             "net": "ネットワーク経由でインストール",
+            "shop": "Ownfoilからインストール",
             "usb": "USB経由でインストール",
             "sig": "署名パッチを管理する",
             "set": "設定",
@@ -57,6 +58,15 @@
             "source_string": " ローカルネットワーク経由",
             "buttons": "\ue0e3 インターネット経由でインストールする    \ue0e2 ヘルプ    \ue0e1 キャンセル",
             "buttons1": "\ue0e0 ファイルを選択    \ue0e3 すべて選択    \ue0ef ファイルをインストール    \ue0e1 キャンセル"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 キャンセル",
+            "buttons": "\ue0e0 ファイルを選択    \ue0e3 すべて選択    \ue0ef ファイルをインストール    \ue0e2 更新    \ue0e1 キャンセル"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "Awoo Installerのアップデートを自動的に確認する",
             "gay_option": "絵を非表示にする",
             "sig_url": "署名パッチのソースURL: ",
+            "shop_url": "Ownfoil URL: ",
+            "shop_user": "Ownfoil ユーザー名: ",
+            "shop_pass": "Ownfoil パスワード: ",
             "language": "言語: ",
             "check_update": "Awoo Installerのアップデートを確認",
             "credits": "クレジット"
@@ -159,6 +172,11 @@
             "opt1": "はい、故障しても大丈夫です"
         },
         "sig_hint": "署名パッチを取得するURLを入力します",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "更新可能",
             "desc0": "Awoo Installer ",

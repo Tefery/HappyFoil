@@ -3,6 +3,7 @@
         "menu": {
             "sd": "SD 카드에서 설치",
             "net": "LAN 또는 인터넷을 통해 설치",
+            "shop": "Ownfoil에서 설치",
             "usb": "USB를 통해 설치",
             "sig": "서명 패치 관리",
             "set": "설정",
@@ -57,6 +58,15 @@
             "source_string": " 로컬 네트워크를 통해",
             "buttons": "\ue0e3 인터넷을 통해 설치    \ue0e2 도움말    \ue0e1 취소",
             "buttons1": "\ue0e0 파일 선택    \ue0e3 모두 선택    \ue0ef 파일 설치    \ue0e1 취소"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 취소",
+            "buttons": "\ue0e0 파일 선택    \ue0e3 모두 선택    \ue0ef 파일 설치    \ue0e2 새로고침    \ue0e1 취소"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "자동으로 Awoo 설치 프로그램에 대한 업데이트 확인",
             "gay_option": "애니메이션 제거",
             "sig_url": "서명 패치 소스 URL: ",
+            "shop_url": "Ownfoil URL: ",
+            "shop_user": "Ownfoil 사용자 이름: ",
+            "shop_pass": "Ownfoil 비밀번호: ",
             "language": "언어: ",
             "check_update": "Awoo 설치 프로그램에 대한 업데이트 확인",
             "credits": "크레딧"
@@ -159,6 +172,11 @@
             "opt1": "예, 벽돌을 원합니다."
         },
         "sig_hint": "서명 패치를 받을 URL을 입력하십시오.",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "업데이트 가능",
             "desc0": "Awoo 설치 프로그램 ",

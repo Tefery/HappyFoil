@@ -3,6 +3,7 @@
         "menu": {
             "sd": "使用SD卡進行安裝",
             "net": "使用網路進行安裝",
+            "shop": "使用 Ownfoil 安裝",
             "usb": "使用USB進行安裝",
             "sig": "管理簽名修補程式",
             "set": "設定",
@@ -57,6 +58,15 @@
             "source_string": " 透過區網進行安裝",
             "buttons": "\ue0e3 透過網路安裝    \ue0e2 說明    \ue0e1 取消",
             "buttons1": "\ue0e0 選擇檔案    \ue0e3 全選    \ue0ef 安裝所選的檔案    \ue0e1 取消"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 取消",
+            "buttons": "\ue0e0 選擇檔案    \ue0e3 全選    \ue0ef 安裝所選的檔案    \ue0e2 重新整理    \ue0e1 取消"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "自動檢查Awoo Installer的更新版本",
             "gay_option": "移除程序介面的動漫圖案",
             "sig_url": "簽名修補程式來源URL: ",
+            "shop_url": "Ownfoil URL: ",
+            "shop_user": "Ownfoil 使用者: ",
+            "shop_pass": "Ownfoil 密碼: ",
             "language": "介面語系： ",
             "check_update": "檢查Awoo Installer的更新版本",
             "credits": "感謝名單"
@@ -159,6 +172,11 @@
             "opt1": "好，我已瞭解可能的風險"
         },
         "sig_hint": "請輸入下載簽名修補程式的URL網路位址",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "有可用的更新版本",
             "desc0": "Awoo Installer ",

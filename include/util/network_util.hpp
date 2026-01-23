@@ -78,6 +78,9 @@ namespace tin::network
             int StreamDataRange(size_t offset, size_t size, std::function<size_t (u8* bytes, size_t size)> streamFunc);
     };
 
+    void SetBasicAuth(const std::string& user, const std::string& pass);
+    void ClearBasicAuth();
+
     void NSULDrop(std::string url);
 
     size_t WaitReceiveNetworkData(int sockfd, void* buf, size_t len);

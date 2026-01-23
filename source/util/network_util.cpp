@@ -36,6 +36,20 @@ namespace inst::ui {
 
 namespace tin::network
 {
+    static std::string g_basic_auth_user;
+    static std::string g_basic_auth_pass;
+    static bool g_basic_auth_set = false;
+
+    static void ApplyBasicAuth(CURL* curl, std::string& authValue)
+    {
+        if (!g_basic_auth_set)
+            return;
+
+        authValue = g_basic_auth_user + ":" + g_basic_auth_pass;
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_easy_setopt(curl, CURLOPT_USERPWD, authValue.c_str());
+    }
+
     // HTTPHeader
 
     HTTPHeader::HTTPHeader(std::string url) :
@@ -91,6 +105,8 @@ namespace tin::network
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, this);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &tin::network::HTTPHeader::ParseHTMLHeader);
+        std::string authValue;
+        ApplyBasicAuth(curl, authValue);
 
         rc = curl_easy_perform(curl);
         if (rc != CURLE_OK)
@@ -146,6 +162,8 @@ namespace tin::network
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
             curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
             curl_easy_setopt(curl, CURLOPT_RANGE, "0-0");
+            std::string authValue;
+            ApplyBasicAuth(curl, authValue);
 
             rc = curl_easy_perform(curl);
             if (rc != CURLE_OK)
@@ -222,6 +240,8 @@ namespace tin::network
         curl_easy_setopt(curl, CURLOPT_RANGE, range.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &writeDataFunc);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &tin::network::HTTPDownload::ParseHTMLData);
+        std::string authValue;
+        ApplyBasicAuth(curl, authValue);
 
         rc = curl_easy_perform(curl);
 
@@ -234,6 +254,20 @@ namespace tin::network
     }
 
     // End HTTPDownload
+
+    void SetBasicAuth(const std::string& user, const std::string& pass)
+    {
+        g_basic_auth_user = user;
+        g_basic_auth_pass = pass;
+        g_basic_auth_set = true;
+    }
+
+    void ClearBasicAuth()
+    {
+        g_basic_auth_user.clear();
+        g_basic_auth_pass.clear();
+        g_basic_auth_set = false;
+    }
 
     size_t WaitReceiveNetworkData(int sockfd, void* buf, size_t len)
     {

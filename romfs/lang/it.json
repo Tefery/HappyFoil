@@ -3,6 +3,7 @@
         "menu": {
             "sd": "Installa dalla SD",
             "net": "Installa via LAN o da internet",
+            "shop": "Installa da Ownfoil",
             "usb": "Installa via USB",
             "sig": "Gestisci le SigPatches",
             "set": "Impostazioni",
@@ -57,6 +58,15 @@
             "source_string": " via rete locale",
             "buttons": "\ue0e3 Installa via internet    \ue0e2 Aiuto    \ue0e1 Annulla",
             "buttons1": "\ue0e0 Seleziona File    \ue0e3 Seleziona tutto    \ue0ef Installa i File    \ue0e1 Annulla"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 Annulla",
+            "buttons": "\ue0e0 Seleziona File    \ue0e3 Seleziona tutto    \ue0ef Installa i File    \ue0e2 Aggiorna    \ue0e1 Annulla"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "Controlla aggiornamenti di Awoo Installer automaticamente",
             "gay_option": "Rimuovi anime",
             "sig_url": "Fonte URL SigPatches: ",
+            "shop_url": "URL Ownfoil: ",
+            "shop_user": "Utente Ownfoil: ",
+            "shop_pass": "Password Ownfoil: ",
             "language": "Lingua: ",
             "check_update": "Controlla aggiornamenti di Awoo Installer ora",
             "credits": "Crediti"
@@ -159,6 +172,11 @@
             "opt1": "Sì, sono sicuro!"
         },
         "sig_hint": "Inserisci l'URL da cui ottenere le SigPatches",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "Aggiornamento disponibile",
             "desc0": "Awoo Installer ",

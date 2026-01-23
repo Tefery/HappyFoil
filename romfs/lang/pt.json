@@ -3,6 +3,7 @@
         "menu": {
             "sd": "Instalar através do cartão SD",
             "net": "Instalar através da LAN ou da Internet",
+            "shop": "Instalar a partir do Ownfoil",
             "usb": "Instalar atráves do USB",
             "sig": "Gerir patches de assinaturas",
             "set": "Definições",
@@ -57,6 +58,15 @@
             "source_string": " através de rede local",
             "buttons": "\ue0e3 Instalar através da Internet    \ue0e2 Ajuda    \ue0e1 Cancelar",
             "buttons1": "\ue0e0 Selecionar Ficheiro    \ue0e3 Selecionar Todos    \ue0ef Instalar Ficheiro(s)    \ue0e1 Cancelar"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 Cancelar",
+            "buttons": "\ue0e0 Selecionar Ficheiro    \ue0e3 Selecionar Todos    \ue0ef Instalar Ficheiro(s)    \ue0e2 Atualizar    \ue0e1 Cancelar"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "Procurar atualizações do Awoo Installer automaticamente",
             "gay_option": "Remover animé",
             "sig_url": "URL da fonte dos patches de assinaturas: ",
+            "shop_url": "URL Ownfoil: ",
+            "shop_user": "Utilizador Ownfoil: ",
+            "shop_pass": "Palavra-passe Ownfoil: ",
             "language": "Idioma: ",
             "check_update": "Procurar atualizações do Awoo Installer",
             "credits": "Créditos"
@@ -159,6 +172,11 @@
             "opt1": "Sim, Eu quero um tijolo"
         },
         "sig_hint": "Introduza o URL para obter os patches de assinaturas",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "Atualização disponível",
             "desc0": "Awoo Installer ",

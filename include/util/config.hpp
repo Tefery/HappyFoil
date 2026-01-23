@@ -10,6 +10,9 @@ namespace inst::config {
     extern std::string gAuthKey;
     extern std::string sigPatchesUrl;
     extern std::string lastNetUrl;
+    extern std::string shopUrl;
+    extern std::string shopUser;
+    extern std::string shopPass;
     extern std::vector<std::string> updateInfo;
     extern int languageSetting;
     extern bool ignoreReqVers;

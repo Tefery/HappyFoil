@@ -111,12 +111,15 @@ namespace netInstStuff{
 
     void sendExitCommands(std::string url)
     {
+        if (m_clientSocket == 0)
+            return;
         LOG_DEBUG("Telling the server we're done installing\n");
         // Send 1 byte ack to close the server, OG tinfoil compatibility
         u8 ack = 0;
         tin::network::WaitSendNetworkData(m_clientSocket, &ack, sizeof(u8));
         // Send 'DROP' header so ns-usbloader knows we're done
-        tin::network::NSULDrop(url);
+        if (!url.empty())
+            tin::network::NSULDrop(url);
     }
 
     void installTitleNet(std::vector<std::string> ourUrlList, int ourStorage, std::vector<std::string> urlListAltNames, std::string ourSource)

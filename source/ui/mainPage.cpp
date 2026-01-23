@@ -60,6 +60,9 @@ namespace inst::ui {
         this->netInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.net"_lang);
         this->netInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
         this->netInstallMenuItem->SetIcon("romfs:/images/icons/cloud-download.png");
+        this->shopInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.shop"_lang);
+        this->shopInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
+        this->shopInstallMenuItem->SetIcon("romfs:/images/icons/cloud-download.png");
         this->usbInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.usb"_lang);
         this->usbInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
         this->usbInstallMenuItem->SetIcon("romfs:/images/icons/usb-port.png");
@@ -82,6 +85,7 @@ namespace inst::ui {
         this->Add(this->butText);
         this->optionMenu->AddItem(this->installMenuItem);
         this->optionMenu->AddItem(this->netInstallMenuItem);
+        this->optionMenu->AddItem(this->shopInstallMenuItem);
         this->optionMenu->AddItem(this->usbInstallMenuItem);
         this->optionMenu->AddItem(this->sigPatchesMenuItem);
         this->optionMenu->AddItem(this->settingsMenuItem);
@@ -106,6 +110,14 @@ namespace inst::ui {
             return;
         }
         mainApp->netinstPage->startNetwork();
+    }
+
+    void MainPage::shopInstallMenuItem_Click() {
+        if (inst::util::getIPAddress() == "1.0.0.127") {
+            inst::ui::mainApp->CreateShowDialog("main.net.title"_lang, "main.net.desc"_lang, {"common.ok"_lang}, true);
+            return;
+        }
+        mainApp->shopinstPage->startShop();
     }
 
     void MainPage::usbInstallMenuItem_Click() {
@@ -146,15 +158,18 @@ namespace inst::ui {
                     this->netInstallMenuItem_Click();
                     break;
                 case 2:
-                    MainPage::usbInstallMenuItem_Click();
+                    this->shopInstallMenuItem_Click();
                     break;
                 case 3:
-                    MainPage::sigPatchesMenuItem_Click();
+                    MainPage::usbInstallMenuItem_Click();
                     break;
                 case 4:
-                    MainPage::settingsMenuItem_Click();
+                    MainPage::sigPatchesMenuItem_Click();
                     break;
                 case 5:
+                    MainPage::settingsMenuItem_Click();
+                    break;
+                case 6:
                     MainPage::exitMenuItem_Click();
                     break;
                 default:

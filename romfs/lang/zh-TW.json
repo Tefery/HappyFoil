@@ -3,6 +3,7 @@
         "menu": {
             "sd": "通過SD卡安裝",
             "net": "通過網路安裝",
+            "shop": "通過 Ownfoil 安裝",
             "usb": "通過USB安裝",
             "sig": "管理簽名補丁（signature patches）",
             "set": "設置",
@@ -58,6 +59,15 @@
             "source_string": " 通過局域網安裝",
             "buttons": "\ue0e3 通過Internet \ue0e2 幫助 \ue0e1 取消",
             "buttons1": "\ue0e0 選擇文件 \ue0e3 全選 \ue0ef 安裝選中的文件 \ue0e1 返回"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 取消",
+            "buttons": "\ue0e0 選擇文件 \ue0e3 全選 \ue0ef 安裝選中的文件 \ue0e2 刷新 \ue0e1 取消"
         },
         "sd": {
             "help": {
@@ -150,6 +160,9 @@
             "auto_update": "自動更新",
             "gay_option": "基友模式",
             "sig_url": "簽名補丁來源URL: ",
+            "shop_url": "Ownfoil URL: ",
+            "shop_user": "Ownfoil 用戶: ",
+            "shop_pass": "Ownfoil 密碼: ",
             "language": "語言： ",
             "check_update": "檢測更新",
             "credits": "致谢"
@@ -160,6 +173,11 @@
             "opt1": "是的，我不怕Switch變磚！"
         },
         "sig_hint": "輸入獲取簽名補丁的URL",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "有新版本可以更新",
             "desc0": "Awoo Installer ",

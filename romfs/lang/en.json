@@ -3,6 +3,7 @@
         "menu": {
             "sd": "Install from SD card",
             "net": "Install over LAN or internet",
+            "shop": "Install from Ownfoil shop",
             "usb": "Install over USB",
             "sig": "Manage signature patches",
             "set": "Settings",
@@ -57,6 +58,15 @@
             "source_string": " over local network",
             "buttons": "\ue0e3 Install Over Internet    \ue0e2 Help    \ue0e1 Cancel",
             "buttons1": "\ue0e0 Select File    \ue0e3 Select All    \ue0ef Install File(s)    \ue0e1 Cancel"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 Cancel",
+            "buttons": "\ue0e0 Select File    \ue0e3 Select All    \ue0ef Install File(s)    \ue0e2 Refresh    \ue0e1 Cancel"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "Check for updates to Awoo Installer automatically",
             "gay_option": "Remove anime",
             "sig_url": "Signature patches source URL: ",
+            "shop_url": "Ownfoil shop URL: ",
+            "shop_user": "Ownfoil username: ",
+            "shop_pass": "Ownfoil password: ",
             "language": "Language: ",
             "check_update": "Check for updates to Awoo Installer",
             "credits": "Credits"
@@ -159,6 +172,11 @@
             "opt1": "Yes, I want a brick"
         },
         "sig_hint": "Enter the URL to obtain Signature Patches from",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "Update available",
             "desc0": "Awoo Installer ",

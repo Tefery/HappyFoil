@@ -3,6 +3,7 @@
         "menu": {
             "sd": "Установка из SD-карты",
             "net": "Установка по сети",
+            "shop": "Установка из Ownfoil",
             "usb": "Установка через USB",
             "sig": "Управление sig-patches",
             "set": "Настройки",
@@ -57,6 +58,15 @@
             "source_string": " по локальной сети",
             "buttons": "\ue0e3 Установка через интернет    \ue0e2 Помощь    \ue0e1 Отмена",
             "buttons1": "\ue0e0 Выбрать файл    \ue0e3 Выбрать всё    \ue0ef Установить файл(ы)    \ue0e1 Отмена"
+        },
+        "shop": {
+            "loading": "Loading shop list...",
+            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
+            "failed": "Failed to load shop",
+            "empty": "Shop has no files.",
+            "source_string": " from Ownfoil shop",
+            "buttons_loading": "\ue0e1 Отмена",
+            "buttons": "\ue0e0 Выбрать файл    \ue0e3 Выбрать всё    \ue0ef Установить файл(ы)    \ue0e2 Обновить    \ue0e1 Отмена"
         },
         "sd": {
             "help": {
@@ -149,6 +159,9 @@
             "auto_update": "Автоматически проверять наличие обновлений",
             "gay_option": "Убрать аниме",
             "sig_url": "URL для скачивания Signature patches: ",
+            "shop_url": "URL Ownfoil: ",
+            "shop_user": "Ownfoil пользователь: ",
+            "shop_pass": "Ownfoil пароль: ",
             "language": "Язык: ",
             "check_update": "Проверить наличие обновлений Awoo Installer",
             "credits": "Благодарности"
@@ -159,6 +172,11 @@
             "opt1": "Да, я хочу получить кирпич"
         },
         "sig_hint": "Введите URL откуда следует брать Signature Patches",
+        "shop": {
+            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
+            "user_hint": "Enter your Ownfoil username (optional)",
+            "pass_hint": "Enter your Ownfoil password (optional)"
+        },
         "update": {
             "title": "Доступно обновление",
             "desc0": "Awoo Installer ",
