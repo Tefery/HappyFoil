@@ -4,7 +4,7 @@
 
 Version: 1.3.8
 
-A No-Bullshit NSP, NSZ, XCI, and XCZ Installer for Nintendo Switch with  basic eShop Support
+A NSP, NSZ, XCI, & XCZ Installer with basic eShop support for Nintendo Switch
 
 ![CyberFoil Main Menu](screenshots/CyberFoil_Main_Menu.jpg)
 
