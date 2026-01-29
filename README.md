@@ -4,6 +4,8 @@
 
 Version: 1.3.8
 
+DEMO Video: https://youtu.be/4Kl0n9vnVP8
+
 A NSP, NSZ, XCI, & XCZ Installer with basic eShop support for Nintendo Switch
 
 ![CyberFoil Main Menu](screenshots/CyberFoil_Main_Menu.jpg)
@@ -72,7 +74,9 @@ Screenshots:
 ## To Do
 - Better search and navigation for large libraries (Planned)
 - Add MTP Install function for NSP,NSZ,XCI and XCZ installation (In-progress)
-- Switch betwwen multiple shops.
+- Switch betwwen multiple shops
+- Pre-load to cache title images and banners
+- Make a noobs video tutorial for the complete setup (CyberFoil and Ownfoil)
 
 
 ## Thanks to
