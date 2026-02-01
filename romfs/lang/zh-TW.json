@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "通過SD卡安裝",
+            "hdd": "通過 USB SSD/HDD 安裝",
             "net": "通過網路安裝",
             "shop": "通過 Ownfoil 安裝",
             "usb": "通過USB安裝",
@@ -24,6 +25,10 @@
                 "desc": "請通過USB線連接您的遠程設備"
             }
         },
+        "hdd": {
+            "title": "未偵測到 USB 裝置",
+            "notfound": "請連接 USB SSD 或硬碟後再進行安裝。"
+        },
         "applet": {
             "title": "不支援Applet模式",
             "desc": "您可以嘗試在“Applet模式”下使用本程式,但如果出現問題請切換到“非Applet模式”再運行。\n切換方法：\n 退回系統桌面選中任意一個遊戲，按住後點進入遊戲，直到跳回hbmenu界面再鬆開按鈕!\n然後再選擇CyberFoil，屆時將不會彈出此對話框！"
@@ -34,7 +39,7 @@
         "net": {
             "help": {
                 "title": "幫助",
-                "desc": "文件可以通過NS-USBloader遠程安裝。\n也可以選擇輸入URL地址安裝。\n如果您的遠程工具對某種文件格式不支援，您可以嘗試修改文件的擴展名再選擇它，安裝的時候Awoo並不在意擴展名！\n如果還是搞不懂，那就使用SD卡安裝方式吧！"
+                "desc": "文件可以通過NS-USBloader遠程安裝。\n也可以選擇輸入URL地址安裝。\n如果您的遠程工具對某種文件格式不支援，您可以嘗試修改文件的擴展名再選擇它，安裝的時候 CyberFoil 並不在意擴展名！\n如果還是搞不懂，那就使用SD卡安裝方式吧！"
             },
             "src": {
                 "title": "您想要通過哪種方式安裝",
@@ -60,23 +65,24 @@
             "buttons1": " 選擇文件  全選  安裝選中的文件  返回"
         },
         "shop": {
-            "loading": "Loading shop list...",
-            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
-            "failed": "Failed to load shop",
+            "loading": "正在載入商店清單...",
+            "top_info": "選擇要從商店安裝的檔案，然後按下  鍵開始安裝！",
+            "failed": "載入商店失敗",
+            "unreachable": "無法連線到商店。",
             "encrypted_unsupported": "不支援加密的商店回應。請在 Ownfoil 設定中停用「加密商店」。",
-            "empty": "Shop has no files.",
-            "source_string": " from Ownfoil shop",
+            "empty": "商店中沒有任何檔案。",
+            "source_string": " 來自 Ownfoil 商店",
             "buttons_loading": " 取消",
-            "buttons": " 選擇文件  全選  安裝選中的文件  刷新 / Section  取消",
-            "buttons_all": " 選擇文件  全選  安裝選中的文件  刷新 / Section  Search  取消",
-            "search_hint": "Search all titles",
-            "update_prompt_title": "Install updates?",
-            "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
-            "motd_title": "Message of the day",
-            "buttons_installed": " Details     Refresh    / Section     Cancel",
-            "detail_type": "Type: ",
-            "detail_titleid": "Title ID: ",
-            "detail_version": "Version: "
+            "buttons": " 選擇文件  全選  安裝選中的文件  刷新 / 分區     檢視     取消",
+            "buttons_all": " 選擇文件  全選  安裝選中的文件  刷新 / 分區     搜尋     檢視     取消",
+            "search_hint": "搜尋所有標題",
+            "update_prompt_title": "安裝更新？",
+            "update_prompt_desc": "是否一併安裝所選標題可用的更新？ 已找到的更新數量：",
+            "motd_title": "每日訊息",
+            "buttons_installed": " 詳細資訊     重新整理    / 分區     取消",
+            "detail_type": "類型: ",
+            "detail_titleid": "標題 ID: ",
+            "detail_version": "版本: "
         },
         "sd": {
             "help": {
@@ -90,10 +96,22 @@
             "delete_desc": "安裝成功後已經不需要原文件。",
             "buttons": " 選擇文件  全選  安裝  幫助  取消"
         },
+        "hdd": {
+            "help": {
+                "title": "幫助",
+                "desc": "連接 USB SSD 或硬碟，瀏覽並選取 NSP、NSZ、XCI 或 XCZ 檔案，然後按下  鍵開始安裝。"
+            },
+            "top_info": "選擇要安裝的檔案，然後按下  鍵開始安裝！",
+            "source_string": " 來自 USB 裝置",
+            "delete_info": " 安裝完成！是否從 USB 裝置中刪除此檔案？",
+            "delete_info_multi": " 個檔案已成功安裝！是否從 USB 裝置中刪除這些檔案？",
+            "delete_desc": "安裝完成後便不再需要保留原始檔案",
+            "buttons": " 選擇文件  全選  安裝選中的文件  幫助  取消"
+        },
         "usb": {
             "help": {
                 "title": "幫助",
-                "desc": "文件可以通過NS-USBloader遠程安裝。\n也可以選擇輸入URL地址安裝。\n如果您的遠程工具對某種文件格式不支援，您可以嘗試修改文件的擴展名再選擇它，安裝的時候Awoo並不在意擴展名！\n如果還是搞不懂，那就使用SD卡安裝方式吧！"
+                "desc": "文件可以通過NS-USBloader遠程安裝。\n也可以選擇輸入URL地址安裝。\n如果您的遠程工具對某種文件格式不支援，您可以嘗試修改文件的擴展名再選擇它，安裝的時候 CyberFoil 並不在意擴展名！\n如果還是搞不懂，那就使用SD卡安裝方式吧！"
             },
             "top_info": "USB連接成功! 正在接收文件列表...",
             "top_info2": "選擇您想通過USB安裝的文件, 然後按  安裝",
@@ -172,13 +190,13 @@
             "shop_url": "Ownfoil URL: ",
             "shop_user": "Ownfoil 用戶: ",
             "shop_pass": "Ownfoil 密碼: ",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "在 eShop 中隱藏已安裝的標題",
             "shop_hide_installed_section": "\u96b1\u85cf eShop \u7684\u300c\u5df2\u5b89\u88dd\u300d\u5340\u6bb5",
             "language": "語言： ",
             "check_update": "檢測更新",
             "credits": "致谢",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "啟用音效",
+            "oled": "啟用 OLED 模式"
         },
         "nca_warn": {
             "title": "警告！",
@@ -187,9 +205,9 @@
         },
         "sig_hint": "輸入獲取簽名補丁的URL",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "請輸入 Ownfoil 商店網址 (例如: http://192.168.1.2:8465)",
+            "user_hint": "請輸入 Ownfoil 使用者名稱 (選填)",
+            "pass_hint": "請輸入 Ownfoil 密碼 (選填)"
         },
         "update": {
             "title": "有新版本可以更新",
@@ -214,7 +232,7 @@
             "desc": "更改語言後本程式將關閉，請重新打開， 或按  返回。",
             "system_language": "系統默認"
         },
-        "title": "更改 Awoo 安裝器的設置！",
+        "title": "更改 CyberFoil 的設置！",
         "buttons": " 選擇/更改  取消"
     },
     "common": {

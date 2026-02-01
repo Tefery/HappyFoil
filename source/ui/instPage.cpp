@@ -3,6 +3,7 @@
 #include "ui/instPage.hpp"
 #include "util/config.hpp"
 #include "mtp_server.hpp"
+#include <switch.h>
 
 #define COLOR(hex) pu::ui::Color::FromHex(hex)
 
@@ -36,19 +37,43 @@ namespace inst::ui {
             this->appVersionText = TextBlock::New(480, 49, "v" + inst::config::appVersion, 22);
         }
         this->appVersionText->SetColor(COLOR("#FFFFFFFF"));
+        this->timeText = TextBlock::New(0, 18, "--:--", 22);
+        this->timeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysLabelText = TextBlock::New(0, 6, "System Memory", 16);
+        this->sysLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sysFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdLabelText = TextBlock::New(0, 6, "microSD Card", 16);
+        this->sdLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sdFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sysBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->sdBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sdBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->netIndicator = Rectangle::New(0, 0, 6, 6, COLOR("#FF3B30FF"), 3);
+        this->wifiBar1 = Rectangle::New(0, 0, 4, 4, COLOR("#FFFFFF55"));
+        this->wifiBar2 = Rectangle::New(0, 0, 4, 7, COLOR("#FFFFFF55"));
+        this->wifiBar3 = Rectangle::New(0, 0, 4, 10, COLOR("#FFFFFF55"));
+        this->batteryOutline = Rectangle::New(0, 0, 24, 12, COLOR("#FFFFFF66"));
+        this->batteryFill = Rectangle::New(0, 0, 0, 10, COLOR("#4CD964FF"));
+        this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
         this->pageInfoText = TextBlock::New(10, 109, "", 30);
         this->pageInfoText->SetColor(COLOR("#FFFFFFFF"));
         this->installInfoText = TextBlock::New(15, 568, "", 22);
         this->installInfoText->SetColor(COLOR("#FFFFFFFF"));
         this->installBar = pu::ui::elm::ProgressBar::New(10, 600, 850, 40, 100.0f);
         this->installBar->SetColor(COLOR("#222222FF"));
-        this->hintText = TextBlock::New(0, 678, " Back", 24);
+        this->hintText = TextBlock::New(0, 678, " Back", 20);
         this->hintText->SetColor(COLOR("#FFFFFFFF"));
         this->hintText->SetX(1280 - 10 - this->hintText->GetTextWidth());
         this->hintText->SetVisible(false);
         this->progressText = TextBlock::New(0, 340, "", 30);
         this->progressText->SetColor(COLOR("#FFFFFFFF"));
         this->progressText->SetVisible(false);
+        this->progressDetailText = TextBlock::New(0, 646, "", 22);
+        this->progressDetailText->SetColor(COLOR("#FFFFFFFF"));
+        this->progressDetailText->SetVisible(false);
         if (std::filesystem::exists(inst::config::appDir + "/awoo_inst.png")) this->awooImage = Image::New(410, 190, inst::config::appDir + "/awoo_inst.png");
         else this->awooImage = Image::New(510, 166, "romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
         this->installIconImage = Image::New(kInstallIconX, kInstallIconY, "romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
@@ -60,10 +85,27 @@ namespace inst::ui {
         this->Add(this->botRect);
         this->Add(this->titleImage);
         this->Add(this->appVersionText);
+        this->Add(this->sysBarBack);
+        this->Add(this->sysBarFill);
+        this->Add(this->sdBarBack);
+        this->Add(this->sdBarFill);
+        this->Add(this->sysLabelText);
+        this->Add(this->sysFreeText);
+        this->Add(this->sdLabelText);
+        this->Add(this->sdFreeText);
+        this->Add(this->netIndicator);
+        this->Add(this->wifiBar1);
+        this->Add(this->wifiBar2);
+        this->Add(this->wifiBar3);
+        this->Add(this->batteryOutline);
+        this->Add(this->batteryFill);
+        this->Add(this->batteryCap);
+        this->Add(this->timeText);
         this->Add(this->pageInfoText);
         this->Add(this->installInfoText);
         this->Add(this->installBar);
         this->Add(this->progressText);
+        this->Add(this->progressDetailText);
         this->Add(this->hintText);
         this->Add(this->awooImage);
         this->Add(this->installIconImage);
@@ -83,6 +125,41 @@ namespace inst::ui {
     void instPage::setInstBarPerc(double ourPercent){
         mainApp->instpage->installBar->SetVisible(true);
         mainApp->instpage->installBar->SetProgress(ourPercent);
+        mainApp->CallForRender();
+    }
+
+    void instPage::setProgressDetailText(const std::string& ourText){
+        mainApp->instpage->progressDetailText->SetText(ourText);
+        mainApp->instpage->progressDetailText->SetX((1280 - mainApp->instpage->progressDetailText->GetTextWidth()) / 2);
+        mainApp->instpage->progressDetailText->SetVisible(true);
+        mainApp->CallForRender();
+    }
+
+    void instPage::clearProgressDetailText(){
+        mainApp->instpage->progressDetailText->SetVisible(false);
+        mainApp->CallForRender();
+    }
+
+    void instPage::setInstallIconFromTitleId(u64 titleId){
+        if (titleId == 0) {
+            return;
+        }
+
+        NsApplicationControlData appControlData{};
+        size_t sizeRead = 0;
+        Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, titleId, &appControlData, sizeof(NsApplicationControlData), &sizeRead);
+        if (R_FAILED(rc) || sizeRead <= sizeof(appControlData.nacp)) {
+            return;
+        }
+
+        const size_t iconSize = sizeRead - sizeof(appControlData.nacp);
+        if (iconSize == 0) {
+            return;
+        }
+
+        mainApp->instpage->installIconImage->SetJpegImage(appControlData.icon, iconSize);
+        mainApp->instpage->installIconImage->SetVisible(true);
+        mainApp->instpage->awooImage->SetVisible(false);
         mainApp->CallForRender();
     }
 
@@ -119,6 +196,7 @@ namespace inst::ui {
         mainApp->instpage->installBar->SetVisible(false);
         mainApp->instpage->hintText->SetVisible(false);
         mainApp->instpage->progressText->SetVisible(false);
+        mainApp->instpage->progressDetailText->SetVisible(false);
         mainApp->instpage->installIconImage->SetVisible(false);
         mainApp->instpage->awooImage->SetVisible(!inst::config::gayMode);
         mainApp->LoadLayout(mainApp->instpage);

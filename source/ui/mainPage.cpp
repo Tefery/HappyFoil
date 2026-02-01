@@ -8,6 +8,7 @@
 #include "sigInstall.hpp"
 #include "data/buffered_placeholder_writer.hpp"
 #include "mtp_server.hpp"
+#include "nx/usbhdd.h"
 
 #define COLOR(hex) pu::ui::Color::FromHex(hex)
 
@@ -56,9 +57,30 @@ namespace inst::ui {
             this->appVersionText = TextBlock::New(480, 49, "v" + inst::config::appVersion, 22);
         }
         this->appVersionText->SetColor(COLOR("#FFFFFFFF"));
-        this->butText = TextBlock::New(10, 678, "main.buttons"_lang, 24);
+        this->timeText = TextBlock::New(0, 18, "--:--", 22);
+        this->timeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysLabelText = TextBlock::New(0, 6, "System Memory", 16);
+        this->sysLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sysFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdLabelText = TextBlock::New(0, 6, "microSD Card", 16);
+        this->sdLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sdFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sysBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->sdBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sdBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->netIndicator = Rectangle::New(0, 0, 6, 6, COLOR("#FF3B30FF"), 3);
+        this->wifiBar1 = Rectangle::New(0, 0, 4, 4, COLOR("#FFFFFF55"));
+        this->wifiBar2 = Rectangle::New(0, 0, 4, 7, COLOR("#FFFFFF55"));
+        this->wifiBar3 = Rectangle::New(0, 0, 4, 10, COLOR("#FFFFFF55"));
+        this->batteryOutline = Rectangle::New(0, 0, 24, 12, COLOR("#FFFFFF66"));
+        this->batteryFill = Rectangle::New(0, 0, 0, 10, COLOR("#4CD964FF"));
+        this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
+        this->butText = TextBlock::New(10, 678, "main.buttons"_lang, 20);
         this->butText->SetColor(COLOR("#FFFFFFFF"));
-        this->optionMenu = pu::ui::elm::Menu::New(0, 95, 1280, COLOR("#67000000"), 94, 6);
+        this->optionMenu = pu::ui::elm::Menu::New(0, 95, 1280, COLOR("#67000000"), 70, 8);
         if (inst::config::oledMode) {
             this->optionMenu->SetOnFocusColor(COLOR("#FFFFFF33"));
             this->optionMenu->SetScrollbarColor(COLOR("#FFFFFF66"));
@@ -74,10 +96,13 @@ namespace inst::ui {
         this->netInstallMenuItem->SetIcon("romfs:/images/icons/cloud-download.png");
         this->shopInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.shop"_lang);
         this->shopInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
-        this->shopInstallMenuItem->SetIcon("romfs:/images/icons/cloud-download.png");
+        this->shopInstallMenuItem->SetIcon("romfs:/images/icons/eshop.png");
         this->usbInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.usb"_lang);
         this->usbInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
         this->usbInstallMenuItem->SetIcon("romfs:/images/icons/usb-port.png");
+        this->hddInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.hdd"_lang);
+        this->hddInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
+        this->hddInstallMenuItem->SetIcon("romfs:/images/icons/usb-install.png");
         this->mtpInstallMenuItem = pu::ui::elm::MenuItem::New("main.menu.mtp"_lang);
         this->mtpInstallMenuItem->SetColor(COLOR("#FFFFFFFF"));
         this->mtpInstallMenuItem->SetIcon("romfs:/images/icons/usb-port.png");
@@ -96,12 +121,28 @@ namespace inst::ui {
         this->Add(this->botRect);
         this->Add(this->titleImage);
         this->Add(this->appVersionText);
+        this->Add(this->sysBarBack);
+        this->Add(this->sysBarFill);
+        this->Add(this->sdBarBack);
+        this->Add(this->sdBarFill);
+        this->Add(this->sysLabelText);
+        this->Add(this->sysFreeText);
+        this->Add(this->sdLabelText);
+        this->Add(this->sdFreeText);
+        this->Add(this->netIndicator);
+        this->Add(this->wifiBar1);
+        this->Add(this->wifiBar2);
+        this->Add(this->wifiBar3);
+        this->Add(this->batteryOutline);
+        this->Add(this->batteryFill);
+        this->Add(this->batteryCap);
+        this->Add(this->timeText);
         this->Add(this->butText);
         this->optionMenu->AddItem(this->shopInstallMenuItem);
         this->optionMenu->AddItem(this->installMenuItem);
-        this->optionMenu->AddItem(this->netInstallMenuItem);
-        this->optionMenu->AddItem(this->usbInstallMenuItem);
+        this->optionMenu->AddItem(this->hddInstallMenuItem);
         this->optionMenu->AddItem(this->mtpInstallMenuItem);
+        this->optionMenu->AddItem(this->netInstallMenuItem);
         this->optionMenu->AddItem(this->sigPatchesMenuItem);
         this->optionMenu->AddItem(this->settingsMenuItem);
         this->optionMenu->AddItem(this->exitMenuItem);
@@ -144,6 +185,16 @@ namespace inst::ui {
         else mainApp->CreateShowDialog("main.usb.error.title"_lang, "main.usb.error.desc"_lang, {"common.ok"_lang}, false);
     }
 
+    void MainPage::hddInstallMenuItem_Click() {
+        if (nx::hdd::count() && nx::hdd::rootPath()) {
+            mainApp->hddinstPage->drawMenuItems(true, nx::hdd::rootPath());
+            mainApp->hddinstPage->menu->SetSelectedIndex(0);
+            mainApp->LoadLayout(mainApp->hddinstPage);
+        } else {
+            mainApp->CreateShowDialog("main.hdd.title"_lang, "main.hdd.notfound"_lang, {"common.ok"_lang}, true);
+        }
+    }
+
     void MainPage::mtpInstallMenuItem_Click() {
         int dialogResult = mainApp->CreateShowDialog("inst.mtp.target.title"_lang, "inst.mtp.target.desc"_lang, {"inst.target.opt0"_lang, "inst.target.opt1"_lang}, false);
         if (dialogResult == -1) return;
@@ -176,7 +227,36 @@ namespace inst::ui {
             mainApp->FadeOut();
             mainApp->Close();
         }
-        if ((Down & HidNpadButton_A) || (Up & TouchPseudoKey)) {
+        bool touchSelect = false;
+        if (!Pos.IsEmpty()) {
+            const int menuX = this->optionMenu->GetProcessedX();
+            const int menuY = this->optionMenu->GetProcessedY();
+            const int menuW = this->optionMenu->GetWidth();
+            const int menuH = this->optionMenu->GetHeight();
+            const bool inMenu = (Pos.X >= menuX) && (Pos.X <= (menuX + menuW)) && (Pos.Y >= menuY) && (Pos.Y <= (menuY + menuH));
+            if (!this->touchActive && inMenu) {
+                this->touchActive = true;
+                this->touchMoved = false;
+                this->touchStartX = Pos.X;
+                this->touchStartY = Pos.Y;
+            } else if (this->touchActive) {
+                int dx = Pos.X - this->touchStartX;
+                int dy = Pos.Y - this->touchStartY;
+                if (dx < 0) dx = -dx;
+                if (dy < 0) dy = -dy;
+                if (dx > 12 || dy > 12) {
+                    this->touchMoved = true;
+                }
+            }
+        } else if (this->touchActive) {
+            if (!this->touchMoved) {
+                touchSelect = true;
+            }
+            this->touchActive = false;
+            this->touchMoved = false;
+        }
+
+        if ((Down & HidNpadButton_A) || touchSelect) {
             switch (this->optionMenu->GetSelectedIndex()) {
                 case 0:
                     this->shopInstallMenuItem_Click();
@@ -185,13 +265,13 @@ namespace inst::ui {
                     this->installMenuItem_Click();
                     break;
                 case 2:
-                    this->netInstallMenuItem_Click();
+                    MainPage::hddInstallMenuItem_Click();
                     break;
                 case 3:
-                    MainPage::usbInstallMenuItem_Click();
+                    MainPage::mtpInstallMenuItem_Click();
                     break;
                 case 4:
-                    MainPage::mtpInstallMenuItem_Click();
+                    this->netInstallMenuItem_Click();
                     break;
                 case 5:
                     MainPage::sigPatchesMenuItem_Click();

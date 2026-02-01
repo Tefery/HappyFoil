@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "Install from SD card",
+            "hdd": "Install from USB SSD/HDD",
             "net": "Install over LAN or internet",
             "shop": "Install from Ownfoil eShop",
             "usb": "Install over USB",
@@ -24,6 +25,10 @@
                 "title": "No USB connection detected",
                 "desc": "Plug in to a compatible device to install over USB"
             }
+        },
+        "hdd": {
+            "title": "No USB drive detected",
+            "notfound": "Plug in a USB SSD or hard drive to install from it."
         },
         "applet": {
             "title": "Applet Mode not supported",
@@ -64,12 +69,13 @@
             "loading": "Loading eShop list...",
             "top_info": "Select what files you want to install from the shop, then press the Plus button! Section:",
             "failed": "Failed to load shop",
+            "unreachable": "Cannot reach shop.",
             "encrypted_unsupported": "Encrypted shop responses are not supported. Disable Encrypt shop in Ownfoil settings.",
             "empty": "Shop has no files.",
             "source_string": " from Ownfoil shop",
             "buttons_loading": " Cancel",
-            "buttons": " Select File     Select All     Install File(s)     Refresh    / Section     Cancel",
-            "buttons_all": " Select File     Select All     Install File(s)     Refresh    / Section     Search     Cancel",
+            "buttons": " Select File     Select All     Install File(s)     Refresh    / Section     View     Cancel",
+            "buttons_all": " Select File     Select All     Install File(s)     Refresh    / Section     Search     View     Cancel",
             "search_hint": "Search all titles",
             "update_prompt_title": "Install updates?",
             "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
@@ -88,6 +94,18 @@
             "source_string": " from SD card",
             "delete_info": " installed! Delete it from the SD card?",
             "delete_info_multi": " files installed successfully! Delete them from the SD card?",
+            "delete_desc": "The original files aren't needed anymore after they've been installed",
+            "buttons": " Select File     Select All     Install File(s)     Help     Cancel"
+        },
+        "hdd": {
+            "help": {
+                "title": "Help",
+                "desc": "Plug in a USB SSD or hard drive, browse to and select NSP, NSZ, XCI,\nor XCZ files, then press the Plus button."
+            },
+            "top_info": "Select what files you want to install, then press the Plus button!",
+            "source_string": " from USB drive",
+            "delete_info": " installed! Delete it from the USB drive?",
+            "delete_info_multi": " files installed successfully! Delete them from the USB drive?",
             "delete_desc": "The original files aren't needed anymore after they've been installed",
             "buttons": " Select File     Select All     Install File(s)     Help     Cancel"
         },
@@ -190,6 +208,7 @@
             "shop_pass": "Ownfoil password: ",
             "shop_hide_installed": "Hide installed titles in eShop",
             "shop_hide_installed_section": "Hide Installed section in eShop",
+            "shop_reset_icons": "Reset shop icon cache",
             "language": "Language: ",
             "check_update": "Check for updates to CyberFoil",
             "credits": "Credits",
@@ -207,6 +226,11 @@
             "user_hint": "Enter your Ownfoil username (optional)",
             "pass_hint": "Enter your Ownfoil password (optional)"
         },
+        "cache_reset": {
+            "title": "Reset shop icon cache?",
+            "desc": "This will delete all cached shop icons and force a re-download the next time you open the shop.",
+            "confirm": "Reset"
+        },
         "update": {
             "title": "Update available",
             "desc0": "CyberFoil ",
@@ -223,7 +247,7 @@
         },
         "credits": {
             "title": "Thanks to the following people!",
-            "desc": "- HookedBehemoth for A LOT of contributions\n- Adubbz and other contributors for Tinfoil\n- XorTroll for Plutonium and Goldleaf\n- blawar (wife strangulator) and nicoboss for NSZ support\n- The kind folks at the AtlasNX Discuck (or at least some of them)\n- The also kind folks at the RetroNX Discuck (of no direct involvement)\n- namako8982 for the Momiji art\n- TheXzoron for being a baka"
+            "desc": "- Huntereb for Awoo Installer\n- ITotalJustice for Sphaira\n- XorTroll for Plutonium\n- Atmosphere Team for libhaze\n- DarkMatterCore for libusbhsfs\n- The Homebrew community for all their hard work and dedication\n- You, for using CyberFoil!"
         },
         "language": {
             "title": "Select CyberFoil's language",

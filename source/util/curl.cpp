@@ -35,6 +35,10 @@ static bool isLikelyImageFile(const char *path) {
     return false;
 }
 
+static std::string getUserAgent() {
+    return "CyberFoil/" + inst::config::appVersion;
+}
+
 size_t writeDataBuffer(char *ptr, size_t size, size_t nmemb, void *userdata) {
     std::ostringstream *stream = (std::ostringstream*)userdata;
     size_t count = size * nmemb;
@@ -65,7 +69,8 @@ namespace inst::curl {
         curl_easy_setopt(curl_handle, CURLOPT_URL, ourUrl.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "Awoo-Installer");
+        std::string userAgent = getUserAgent();
+        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, userAgent.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT_MS, timeout);
@@ -99,7 +104,8 @@ namespace inst::curl {
         curl_easy_setopt(curl_handle, CURLOPT_URL, ourUrl.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "Awoo-Installer");
+        std::string userAgent = getUserAgent();
+        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, userAgent.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT_MS, timeout);
@@ -140,7 +146,8 @@ namespace inst::curl {
         curl_easy_setopt(curl_handle, CURLOPT_URL, ourUrl.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "Awoo-Installer");
+        std::string userAgent = getUserAgent();
+        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, userAgent.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT_MS, timeout);
@@ -188,7 +195,8 @@ namespace inst::curl {
         curl_easy_setopt(curl_handle, CURLOPT_URL, ourUrl.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "Awoo-Installer");
+        std::string userAgent = getUserAgent();
+        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, userAgent.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT_MS, timeout);

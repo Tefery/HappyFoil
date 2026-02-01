@@ -5,6 +5,7 @@
 #include "ui/shopInstPage.hpp"
 #include "ui/sdInstPage.hpp"
 #include "ui/usbInstPage.hpp"
+#include "ui/hddInstPage.hpp"
 #include "ui/instPage.hpp"
 #include "ui/optionsPage.hpp"
 
@@ -19,6 +20,7 @@ namespace inst::ui {
             shopInstPage::Ref shopinstPage;
             sdInstPage::Ref sdinstPage;
             usbInstPage::Ref usbinstPage;
+            hddInstPage::Ref hddinstPage;
             instPage::Ref instpage;
             optionsPage::Ref optionspage;
     };

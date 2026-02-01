@@ -10,6 +10,7 @@
 #include "util/unzip.hpp"
 #include "util/lang.hpp"
 #include "ui/instPage.hpp"
+#include "shopInstall.hpp"
 
 #define COLOR(hex) pu::ui::Color::FromHex(hex)
 
@@ -41,11 +42,32 @@ namespace inst::ui {
             this->appVersionText = TextBlock::New(480, 49, "v" + inst::config::appVersion, 22);
         }
         this->appVersionText->SetColor(COLOR("#FFFFFFFF"));
+        this->timeText = TextBlock::New(0, 18, "--:--", 22);
+        this->timeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysLabelText = TextBlock::New(0, 6, "System Memory", 16);
+        this->sysLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sysFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdLabelText = TextBlock::New(0, 6, "microSD Card", 16);
+        this->sdLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sdFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sysBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->sdBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sdBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->netIndicator = Rectangle::New(0, 0, 6, 6, COLOR("#FF3B30FF"), 3);
+        this->wifiBar1 = Rectangle::New(0, 0, 4, 4, COLOR("#FFFFFF55"));
+        this->wifiBar2 = Rectangle::New(0, 0, 4, 7, COLOR("#FFFFFF55"));
+        this->wifiBar3 = Rectangle::New(0, 0, 4, 10, COLOR("#FFFFFF55"));
+        this->batteryOutline = Rectangle::New(0, 0, 24, 12, COLOR("#FFFFFF66"));
+        this->batteryFill = Rectangle::New(0, 0, 0, 10, COLOR("#4CD964FF"));
+        this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
         this->pageInfoText = TextBlock::New(10, 109, "options.title"_lang, 30);
         this->pageInfoText->SetColor(COLOR("#FFFFFFFF"));
-        this->butText = TextBlock::New(10, 678, "options.buttons"_lang, 24);
+        this->butText = TextBlock::New(10, 678, "options.buttons"_lang, 20);
         this->butText->SetColor(COLOR("#FFFFFFFF"));
-        this->menu = pu::ui::elm::Menu::New(0, 156, 1280, COLOR("#FFFFFF00"), 84, (506 / 84));
+        this->menu = pu::ui::elm::Menu::New(0, 156, 1280, COLOR("#FFFFFF00"), 72, (506 / 72), 20);
         if (inst::config::oledMode) {
             this->menu->SetOnFocusColor(COLOR("#FFFFFF33"));
             this->menu->SetScrollbarColor(COLOR("#FFFFFF66"));
@@ -58,6 +80,22 @@ namespace inst::ui {
         this->Add(this->botRect);
         this->Add(this->titleImage);
         this->Add(this->appVersionText);
+        this->Add(this->sysBarBack);
+        this->Add(this->sysBarFill);
+        this->Add(this->sdBarBack);
+        this->Add(this->sdBarFill);
+        this->Add(this->sysLabelText);
+        this->Add(this->sysFreeText);
+        this->Add(this->sdLabelText);
+        this->Add(this->sdFreeText);
+        this->Add(this->netIndicator);
+        this->Add(this->wifiBar1);
+        this->Add(this->wifiBar2);
+        this->Add(this->wifiBar3);
+        this->Add(this->batteryOutline);
+        this->Add(this->batteryFill);
+        this->Add(this->batteryCap);
+        this->Add(this->timeText);
         this->Add(this->butText);
         this->Add(this->pageInfoText);
         this->setMenuText();
@@ -181,6 +219,9 @@ namespace inst::ui {
         shopHideInstalledSectionOption->SetColor(COLOR("#FFFFFFFF"));
         shopHideInstalledSectionOption->SetIcon(this->getMenuOptionIcon(inst::config::shopHideInstalledSection));
         this->menu->AddItem(shopHideInstalledSectionOption);
+        auto shopResetIconsOption = pu::ui::elm::MenuItem::New("options.menu_items.shop_reset_icons"_lang);
+        shopResetIconsOption->SetColor(COLOR("#FFFFFFFF"));
+        this->menu->AddItem(shopResetIconsOption);
         auto languageOption = pu::ui::elm::MenuItem::New("options.menu_items.language"_lang + this->getMenuLanguage(inst::config::languageSetting));
         languageOption->SetColor(COLOR("#FFFFFFFF"));
         this->menu->AddItem(languageOption);
@@ -196,7 +237,41 @@ namespace inst::ui {
         if (Down & HidNpadButton_B) {
             mainApp->LoadLayout(mainApp->mainPage);
         }
-        if ((Down & HidNpadButton_A) || (Up & TouchPseudoKey)) {
+        bool touchSelect = false;
+        if (this->menu->IsVisible()) {
+            if (!Pos.IsEmpty()) {
+                const int menuX = this->menu->GetProcessedX();
+                const int menuY = this->menu->GetProcessedY();
+                const int menuW = this->menu->GetWidth();
+                const int menuH = this->menu->GetHeight();
+                const bool inMenu = (Pos.X >= menuX) && (Pos.X <= (menuX + menuW)) && (Pos.Y >= menuY) && (Pos.Y <= (menuY + menuH));
+                if (!this->touchActive && inMenu) {
+                    this->touchActive = true;
+                    this->touchMoved = false;
+                    this->touchStartX = Pos.X;
+                    this->touchStartY = Pos.Y;
+                } else if (this->touchActive) {
+                    int dx = Pos.X - this->touchStartX;
+                    int dy = Pos.Y - this->touchStartY;
+                    if (dx < 0) dx = -dx;
+                    if (dy < 0) dy = -dy;
+                    if (dx > 12 || dy > 12) {
+                        this->touchMoved = true;
+                    }
+                }
+            } else if (this->touchActive) {
+                if (!this->touchMoved) {
+                    touchSelect = true;
+                }
+                this->touchActive = false;
+                this->touchMoved = false;
+            }
+        } else {
+            this->touchActive = false;
+            this->touchMoved = false;
+        }
+
+        if ((Down & HidNpadButton_A) || touchSelect) {
             std::string keyboardResult;
             int rc;
             std::vector<std::string> downloadUrl;
@@ -337,6 +412,14 @@ namespace inst::ui {
                     this->setMenuText();
                     break;
                 case 14:
+                    if (!inst::config::shopUrl.empty()) {
+                        int confirm = inst::ui::mainApp->CreateShowDialog("options.cache_reset.title"_lang, "options.cache_reset.desc"_lang, {"options.cache_reset.confirm"_lang, "common.cancel"_lang}, false);
+                        if (confirm == 0) {
+                            shopInstStuff::ResetShopIconCache(inst::config::shopUrl);
+                        }
+                    }
+                    break;
+                case 15:
                     languageList = languageStrings;
                     languageList.push_back("options.language.system_language"_lang);
                     rc = inst::ui::mainApp->CreateShowDialog("options.language.title"_lang, "options.language.desc"_lang, languageList, false);
@@ -382,7 +465,7 @@ namespace inst::ui {
                     mainApp->FadeOut();
                     mainApp->Close();
                     break;
-                case 15:
+                case 16:
                     if (inst::util::getIPAddress() == "1.0.0.127") {
                         inst::ui::mainApp->CreateShowDialog("main.net.title"_lang, "main.net.desc"_lang, {"common.ok"_lang}, true);
                         break;
@@ -394,7 +477,7 @@ namespace inst::ui {
                     }
                     this->askToUpdate(downloadUrl);
                     break;
-                case 16:
+                case 17:
                     inst::ui::mainApp->CreateShowDialog("options.credits.title"_lang, "options.credits.desc"_lang, {"common.close"_lang}, true);
                     break;
                 default:

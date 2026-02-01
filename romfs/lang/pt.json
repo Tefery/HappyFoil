@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "Instalar através do cartão SD",
+            "hdd": "Instalar a partir de SSD/HDD USB",
             "net": "Instalar através da LAN ou da Internet",
             "shop": "Instalar a partir do Ownfoil",
             "usb": "Instalar atráves do USB",
@@ -23,6 +24,10 @@
                 "title": "Nenhuma ligação USB detetada",
                 "desc": "Ligue um dispositivo compatível para instalar através do USB"
             }
+        },
+        "hdd": {
+            "title": "Nenhuma unidade USB detetada",
+            "notfound": "Ligue um SSD ou disco rígido USB para instalar a partir dele."
         },
         "applet": {
             "title": "Modo applet não suportado",
@@ -60,23 +65,24 @@
             "buttons1": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Cancelar"
         },
         "shop": {
-            "loading": "Loading shop list...",
-            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
-            "failed": "Failed to load shop",
+            "loading": "A carregar a lista da loja...",
+            "top_info": "Selecione os ficheiros que deseja instalar da loja e depois pressione o botão Mais!",
+            "failed": "Falha ao carregar a loja",
+            "unreachable": "Não foi possível acessar a loja.",
             "encrypted_unsupported": "Respostas de loja criptografadas não são suportadas. Desative «Criptografar loja» nas configurações do Ownfoil.",
-            "empty": "Shop has no files.",
-            "source_string": " from Ownfoil shop",
+            "empty": "A loja não tem ficheiros.",
+            "source_string": " da loja Ownfoil",
             "buttons_loading": " Cancelar",
-            "buttons": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Atualizar    / Section     Cancelar",
-            "buttons_all": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Atualizar    / Section     Search     Cancelar",
-            "search_hint": "Search all titles",
-            "update_prompt_title": "Install updates?",
-            "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
-            "motd_title": "Message of the day",
-            "buttons_installed": " Details     Refresh    / Section     Cancel",
-            "detail_type": "Type: ",
-            "detail_titleid": "Title ID: ",
-            "detail_version": "Version: "
+            "buttons": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Atualizar    / Secção     Ver     Cancelar",
+            "buttons_all": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Atualizar    / Secção     Pesquisar     Ver     Cancelar",
+            "search_hint": "Pesquisar em todos os títulos",
+            "update_prompt_title": "Instalar atualizações?",
+            "update_prompt_desc": "Incluir as atualizações disponíveis para os títulos selecionados? Atualizações encontradas: ",
+            "motd_title": "Mensagem do dia",
+            "buttons_installed": " Detalhes     Atualizar    / Secção     Cancelar",
+            "detail_type": "Tipo: ",
+            "detail_titleid": "ID do título: ",
+            "detail_version": "Versão: "
         },
         "sd": {
             "help": {
@@ -88,6 +94,18 @@
             "delete_info": " instalado! Eliminar do cartão SD?",
             "delete_info_multi": " instalados com sucesso! Eliminar do cartão SD?",
             "delete_desc": "Os ficheiros originais não são necessários depois de instalados",
+            "buttons": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Ajuda     Cancelar"
+        },
+        "hdd": {
+            "help": {
+                "title": "Ajuda",
+                "desc": "Ligue um SSD ou disco rígido USB, procure e selecione ficheiros NSP, NSZ, XCI\nou XCZ e depois pressione o botão Mais."
+            },
+            "top_info": "Selecione os ficheiros que deseja instalar e depois pressione o botão Mais!",
+            "source_string": " a partir da unidade USB",
+            "delete_info": " instalado! Eliminar da unidade USB?",
+            "delete_info_multi": " ficheiros instalados com sucesso! Eliminar da unidade USB?",
+            "delete_desc": "Os ficheiros originais deixam de ser necessários depois de instalados",
             "buttons": " Selecionar Ficheiro     Selecionar Todos     Instalar Ficheiro(s)     Ajuda     Cancelar"
         },
         "usb": {
@@ -172,13 +190,13 @@
             "shop_url": "URL Ownfoil: ",
             "shop_user": "Utilizador Ownfoil: ",
             "shop_pass": "Palavra-passe Ownfoil: ",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "Ocultar títulos instalados na eShop",
             "shop_hide_installed_section": "Ocultar a se\u00e7\u00e3o Instalados na eShop",
             "language": "Idioma: ",
             "check_update": "Procurar atualizações do CyberFoil",
             "credits": "Créditos",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "Ativar sons",
+            "oled": "Ativar modo OLED"
         },
         "nca_warn": {
             "title": "Aviso!",
@@ -187,9 +205,9 @@
         },
         "sig_hint": "Introduza o URL para obter os patches de assinaturas",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "Introduza o URL da sua loja Ownfoil (exemplo: http://192.168.1.2:8465)",
+            "user_hint": "Introduza o seu nome de utilizador Ownfoil (opcional)",
+            "pass_hint": "Introduza a sua palavra-passe Ownfoil (opcional)"
         },
         "update": {
             "title": "Atualização disponível",

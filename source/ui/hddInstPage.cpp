@@ -1,0 +1,224 @@
+#include <filesystem>
+#include "ui/MainApplication.hpp"
+#include "ui/mainPage.hpp"
+#include "ui/hddInstPage.hpp"
+#include "hddInstall.hpp"
+#include "util/util.hpp"
+#include "util/config.hpp"
+#include "util/lang.hpp"
+
+#define COLOR(hex) pu::ui::Color::FromHex(hex)
+
+namespace inst::ui {
+    extern MainApplication *mainApp;
+
+    namespace {
+        std::filesystem::path normalizeRootPath(const std::filesystem::path& path) {
+            std::filesystem::path normalized = path;
+            const auto pathStr = normalized.string();
+            if (!pathStr.empty() && pathStr.back() == ':') {
+                normalized /= "";
+            }
+            return normalized;
+        }
+    }
+
+    hddInstPage::hddInstPage() : Layout::Layout() {
+        if (inst::config::oledMode) {
+            this->SetBackgroundColor(COLOR("#000000FF"));
+        } else {
+            this->SetBackgroundColor(COLOR("#670000FF"));
+            if (std::filesystem::exists(inst::config::appDir + "/background.png")) this->SetBackgroundImage(inst::config::appDir + "/background.png");
+            else this->SetBackgroundImage("romfs:/images/background.jpg");
+        }
+        const auto topColor = inst::config::oledMode ? COLOR("#000000FF") : COLOR("#170909FF");
+        const auto infoColor = inst::config::oledMode ? COLOR("#000000FF") : COLOR("#17090980");
+        const auto botColor = inst::config::oledMode ? COLOR("#000000FF") : COLOR("#17090980");
+        this->topRect = Rectangle::New(0, 0, 1280, 94, topColor);
+        this->infoRect = Rectangle::New(0, 95, 1280, 60, infoColor);
+        this->botRect = Rectangle::New(0, 660, 1280, 60, botColor);
+        if (inst::config::gayMode) {
+            this->titleImage = Image::New(-113, 0, "romfs:/images/logo.png");
+            this->appVersionText = TextBlock::New(367, 49, "v" + inst::config::appVersion, 22);
+        }
+        else {
+            this->titleImage = Image::New(0, 0, "romfs:/images/logo.png");
+            this->appVersionText = TextBlock::New(480, 49, "v" + inst::config::appVersion, 22);
+        }
+        this->appVersionText->SetColor(COLOR("#FFFFFFFF"));
+        this->timeText = TextBlock::New(0, 18, "--:--", 22);
+        this->timeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysLabelText = TextBlock::New(0, 6, "System Memory", 16);
+        this->sysLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sysFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdLabelText = TextBlock::New(0, 6, "microSD Card", 16);
+        this->sdLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sdFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sysBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->sdBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sdBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->netIndicator = Rectangle::New(0, 0, 6, 6, COLOR("#FF3B30FF"), 3);
+        this->wifiBar1 = Rectangle::New(0, 0, 4, 4, COLOR("#FFFFFF55"));
+        this->wifiBar2 = Rectangle::New(0, 0, 4, 7, COLOR("#FFFFFF55"));
+        this->wifiBar3 = Rectangle::New(0, 0, 4, 10, COLOR("#FFFFFF55"));
+        this->batteryOutline = Rectangle::New(0, 0, 24, 12, COLOR("#FFFFFF66"));
+        this->batteryFill = Rectangle::New(0, 0, 0, 10, COLOR("#4CD964FF"));
+        this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
+        this->pageInfoText = TextBlock::New(10, 109, "inst.hdd.top_info"_lang, 30);
+        this->pageInfoText->SetColor(COLOR("#FFFFFFFF"));
+        this->butText = TextBlock::New(10, 678, "inst.hdd.buttons"_lang, 20);
+        this->butText->SetColor(COLOR("#FFFFFFFF"));
+        this->menu = pu::ui::elm::Menu::New(0, 156, 1280, COLOR("#FFFFFF00"), 84, (506 / 84));
+        if (inst::config::oledMode) {
+            this->menu->SetOnFocusColor(COLOR("#FFFFFF33"));
+            this->menu->SetScrollbarColor(COLOR("#FFFFFF66"));
+        } else {
+            this->menu->SetOnFocusColor(COLOR("#00000033"));
+            this->menu->SetScrollbarColor(COLOR("#17090980"));
+        }
+        this->Add(this->topRect);
+        this->Add(this->infoRect);
+        this->Add(this->botRect);
+        this->Add(this->titleImage);
+        this->Add(this->appVersionText);
+        this->Add(this->sysBarBack);
+        this->Add(this->sysBarFill);
+        this->Add(this->sdBarBack);
+        this->Add(this->sdBarFill);
+        this->Add(this->sysLabelText);
+        this->Add(this->sysFreeText);
+        this->Add(this->sdLabelText);
+        this->Add(this->sdFreeText);
+        this->Add(this->netIndicator);
+        this->Add(this->wifiBar1);
+        this->Add(this->wifiBar2);
+        this->Add(this->wifiBar3);
+        this->Add(this->batteryOutline);
+        this->Add(this->batteryFill);
+        this->Add(this->batteryCap);
+        this->Add(this->timeText);
+        this->Add(this->butText);
+        this->Add(this->pageInfoText);
+        this->Add(this->menu);
+    }
+
+    void hddInstPage::drawMenuItems(bool clearItems, std::filesystem::path ourPath) {
+        if (clearItems) this->selectedTitles = {};
+        if (clearItems || this->rootDir.empty()) {
+            this->rootDir = normalizeRootPath(ourPath);
+        }
+        this->currentDir = normalizeRootPath(ourPath);
+        this->menu->ClearItems();
+        try {
+            this->ourDirectories = util::getDirsAtPath(this->currentDir);
+            this->ourFiles = util::getDirectoryFiles(this->currentDir, {".nsp", ".nsz", ".xci", ".xcz"});
+        } catch (std::exception& e) {
+            this->drawMenuItems(false, this->currentDir.parent_path());
+            return;
+        }
+        if (this->currentDir != this->rootDir) {
+            std::string itm = "..";
+            auto ourEntry = pu::ui::elm::MenuItem::New(itm);
+            ourEntry->SetColor(COLOR("#FFFFFFFF"));
+            ourEntry->SetIcon("romfs:/images/icons/folder-upload.png");
+            this->menu->AddItem(ourEntry);
+        }
+        for (auto& file: this->ourDirectories) {
+            if (file == "..") break;
+            std::string itm = file.filename().string();
+            auto ourEntry = pu::ui::elm::MenuItem::New(itm);
+            ourEntry->SetColor(COLOR("#FFFFFFFF"));
+            ourEntry->SetIcon("romfs:/images/icons/folder.png");
+            this->menu->AddItem(ourEntry);
+        }
+        for (auto& file: this->ourFiles) {
+            std::string itm = file.filename().string();
+            auto ourEntry = pu::ui::elm::MenuItem::New(itm);
+            ourEntry->SetColor(COLOR("#FFFFFFFF"));
+            ourEntry->SetIcon("romfs:/images/icons/checkbox-blank-outline.png");
+            for (long unsigned int i = 0; i < this->selectedTitles.size(); i++) {
+                if (this->selectedTitles[i] == file) {
+                    ourEntry->SetIcon("romfs:/images/icons/check-box-outline.png");
+                }
+            }
+            this->menu->AddItem(ourEntry);
+        }
+    }
+
+    void hddInstPage::followDirectory() {
+        int selectedIndex = this->menu->GetSelectedIndex();
+        int dirListSize = this->ourDirectories.size();
+        if (this->currentDir != this->rootDir) {
+            dirListSize++;
+            selectedIndex--;
+        }
+        if (selectedIndex < dirListSize) {
+            if (this->menu->GetItems()[this->menu->GetSelectedIndex()]->GetName() == ".." && this->menu->GetSelectedIndex() == 0) {
+                this->drawMenuItems(true, this->currentDir.parent_path());
+            } else {
+                this->drawMenuItems(true, this->ourDirectories[selectedIndex]);
+            }
+            this->menu->SetSelectedIndex(0);
+        }
+    }
+
+    void hddInstPage::selectNsp(int selectedIndex) {
+        int dirListSize = this->ourDirectories.size();
+        if (this->currentDir != this->rootDir) dirListSize++;
+        if (this->menu->GetItems()[selectedIndex]->GetIcon() == "romfs:/images/icons/check-box-outline.png") {
+            for (long unsigned int i = 0; i < this->selectedTitles.size(); i++) {
+                if (this->selectedTitles[i] == this->ourFiles[selectedIndex - dirListSize]) this->selectedTitles.erase(this->selectedTitles.begin() + i);
+            }
+        } else if (this->menu->GetItems()[selectedIndex]->GetIcon() == "romfs:/images/icons/checkbox-blank-outline.png") this->selectedTitles.push_back(this->ourFiles[selectedIndex - dirListSize]);
+        else {
+            this->followDirectory();
+            return;
+        }
+        this->drawMenuItems(false, currentDir);
+    }
+
+    void hddInstPage::startInstall() {
+        int dialogResult = -1;
+        if (this->selectedTitles.size() == 1) {
+            dialogResult = mainApp->CreateShowDialog("inst.target.desc0"_lang + inst::util::shortenString(std::filesystem::path(this->selectedTitles[0]).filename().string(), 32, true) + "inst.target.desc1"_lang, "common.cancel_desc"_lang, {"inst.target.opt0"_lang, "inst.target.opt1"_lang}, false);
+        } else dialogResult = mainApp->CreateShowDialog("inst.target.desc00"_lang + std::to_string(this->selectedTitles.size()) + "inst.target.desc01"_lang, "common.cancel_desc"_lang, {"inst.target.opt0"_lang, "inst.target.opt1"_lang}, false);
+        if (dialogResult == -1) return;
+        hddInstStuff::installNspFromFile(this->selectedTitles, dialogResult);
+    }
+
+    void hddInstPage::onInput(u64 Down, u64 Up, u64 Held, pu::ui::Touch Pos) {
+        if (Down & HidNpadButton_B) {
+            mainApp->LoadLayout(mainApp->mainPage);
+        }
+        if ((Down & HidNpadButton_A) || (Up & TouchPseudoKey)) {
+            this->selectNsp(this->menu->GetSelectedIndex());
+            if (this->ourFiles.size() == 1 && this->selectedTitles.size() == 1) {
+                this->startInstall();
+            }
+        }
+        if ((Down & HidNpadButton_Y)) {
+            if (this->selectedTitles.size() == this->ourFiles.size()) this->drawMenuItems(true, currentDir);
+            else {
+                int topDir = 0;
+                if (this->currentDir != this->rootDir) topDir++;
+                for (long unsigned int i = this->ourDirectories.size() + topDir; i < this->menu->GetItems().size(); i++) {
+                    if (this->menu->GetItems()[i]->GetIcon() == "romfs:/images/icons/check-box-outline.png") continue;
+                    else this->selectNsp(i);
+                }
+                this->drawMenuItems(false, currentDir);
+            }
+        }
+        if ((Down & HidNpadButton_X)) {
+            inst::ui::mainApp->CreateShowDialog("inst.hdd.help.title"_lang, "inst.hdd.help.desc"_lang, {"common.ok"_lang}, true);
+        }
+        if (Down & HidNpadButton_Plus) {
+            if (this->selectedTitles.size() == 0 && this->menu->GetItems()[this->menu->GetSelectedIndex()]->GetIcon() == "romfs:/images/icons/checkbox-blank-outline.png") {
+                this->selectNsp(this->menu->GetSelectedIndex());
+            }
+            if (this->selectedTitles.size() > 0) this->startInstall();
+        }
+    }
+}

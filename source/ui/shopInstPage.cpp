@@ -16,14 +16,14 @@
 #define COLOR(hex) pu::ui::Color::FromHex(hex)
 
 namespace {
-    constexpr int kGridCols = 8;
-    constexpr int kGridRows = 3;
-    constexpr int kGridTileWidth = 140;
-    constexpr int kGridTileHeight = 140;
+    constexpr int kGridCols = 10;
+    constexpr int kGridRows = 4;
+    constexpr int kGridTileWidth = 120;
+    constexpr int kGridTileHeight = 120;
     constexpr int kGridGap = 6;
     constexpr int kGridWidth = (kGridCols * kGridTileWidth) + ((kGridCols - 1) * kGridGap);
     constexpr int kGridStartX = (1280 - kGridWidth) / 2;
-    constexpr int kGridStartY = 170;
+    constexpr int kGridStartY = 140;
     constexpr int kGridItemsPerPage = kGridCols * kGridRows;
 
     std::string NormalizeHex(std::string hex)
@@ -151,11 +151,32 @@ namespace inst::ui {
             this->appVersionText = TextBlock::New(480, 49, "v" + inst::config::appVersion, 22);
         }
         this->appVersionText->SetColor(COLOR("#FFFFFFFF"));
-        this->pageInfoText = TextBlock::New(10, 109, "", 30);
+        this->timeText = TextBlock::New(0, 18, "--:--", 22);
+        this->timeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysLabelText = TextBlock::New(0, 6, "System Memory", 16);
+        this->sysLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sysFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdLabelText = TextBlock::New(0, 6, "microSD Card", 16);
+        this->sdLabelText->SetColor(COLOR("#FFFFFFFF"));
+        this->sdFreeText = TextBlock::New(0, 42, "Free --", 16);
+        this->sdFreeText->SetColor(COLOR("#FFFFFFFF"));
+        this->sysBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sysBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->sdBarBack = Rectangle::New(0, 30, 180, 6, COLOR("#FFFFFF33"));
+        this->sdBarFill = Rectangle::New(0, 30, 0, 6, COLOR("#FF4D4DFF"));
+        this->netIndicator = Rectangle::New(0, 0, 6, 6, COLOR("#FF3B30FF"), 3);
+        this->wifiBar1 = Rectangle::New(0, 0, 4, 4, COLOR("#FFFFFF55"));
+        this->wifiBar2 = Rectangle::New(0, 0, 4, 7, COLOR("#FFFFFF55"));
+        this->wifiBar3 = Rectangle::New(0, 0, 4, 10, COLOR("#FFFFFF55"));
+        this->batteryOutline = Rectangle::New(0, 0, 24, 12, COLOR("#FFFFFF66"));
+        this->batteryFill = Rectangle::New(0, 0, 0, 10, COLOR("#4CD964FF"));
+        this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
+        this->pageInfoText = TextBlock::New(10, 109, "", 20);
         this->pageInfoText->SetColor(COLOR("#FFFFFFFF"));
-        this->butText = TextBlock::New(10, 678, "", 24);
+        this->butText = TextBlock::New(10, 678, "", 20);
         this->butText->SetColor(COLOR("#FFFFFFFF"));
-        this->menu = pu::ui::elm::Menu::New(0, 156, 1280, COLOR("#FFFFFF00"), 84, (506 / 84));
+        this->menu = pu::ui::elm::Menu::New(0, 156, 1280, COLOR("#FFFFFF00"), 28, 18, 16);
         if (inst::config::oledMode) {
             this->menu->SetOnFocusColor(COLOR("#FFFFFF33"));
             this->menu->SetScrollbarColor(COLOR("#FFFFFF66"));
@@ -163,8 +184,8 @@ namespace inst::ui {
             this->menu->SetOnFocusColor(COLOR("#00000033"));
             this->menu->SetScrollbarColor(COLOR("#17090980"));
         }
-        this->infoImage = Image::New(453, 292, "romfs:/images/icons/lan-connection-waiting.png");
-        this->previewImage = Image::New(900, 230, "romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
+        this->infoImage = Image::New(453, 292, "romfs:/images/icons/eshop-connection-waiting.png");
+        this->previewImage = Image::New(900, 230, "romfs:/images/icons/title-placeholder.png");
         this->previewImage->SetWidth(320);
         this->previewImage->SetHeight(320);
         auto highlightColor = inst::config::oledMode ? COLOR("#FFFFFF66") : COLOR("#FFFFFF33");
@@ -172,15 +193,33 @@ namespace inst::ui {
         this->gridHighlight->SetVisible(false);
         this->gridImages.reserve(kGridItemsPerPage);
         for (int i = 0; i < kGridItemsPerPage; i++) {
-            auto img = Image::New(0, 0, "romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
+            auto img = Image::New(0, 0, "romfs:/images/icons/title-placeholder.png");
             img->SetWidth(kGridTileWidth);
             img->SetHeight(kGridTileHeight);
             img->SetVisible(false);
             this->gridImages.push_back(img);
         }
-        this->gridTitleText = TextBlock::New(10, 634, "", 24);
+        auto selectedColor = COLOR("#34C75966");
+        this->shopGridSelectHighlights.reserve(kGridItemsPerPage);
+        for (int i = 0; i < kGridItemsPerPage; i++) {
+            auto highlight = Rectangle::New(0, 0, kGridTileWidth + 8, kGridTileHeight + 8, selectedColor);
+            highlight->SetVisible(false);
+            this->shopGridSelectHighlights.push_back(highlight);
+        }
+        this->shopGridSelectIcons.reserve(kGridItemsPerPage);
+        for (int i = 0; i < kGridItemsPerPage; i++) {
+            auto icon = Image::New(0, 0, "romfs:/images/icons/title_selected.png");
+            icon->SetWidth(120);
+            icon->SetHeight(120);
+            icon->SetVisible(false);
+            this->shopGridSelectIcons.push_back(icon);
+        }
+        this->gridTitleText = TextBlock::New(10, 649, "", 18);
         this->gridTitleText->SetColor(COLOR("#FFFFFFFF"));
         this->gridTitleText->SetVisible(false);
+        this->imageLoadingText = TextBlock::New(0, 118, "Fetching images...", 18);
+        this->imageLoadingText->SetColor(COLOR("#FFFFFFFF"));
+        this->imageLoadingText->SetVisible(false);
         this->debugText = TextBlock::New(10, 620, "", 18);
         this->debugText->SetColor(COLOR("#FFFFFFFF"));
         this->debugText->SetVisible(false);
@@ -189,6 +228,22 @@ namespace inst::ui {
         this->Add(this->botRect);
         this->Add(this->titleImage);
         this->Add(this->appVersionText);
+        this->Add(this->sysBarBack);
+        this->Add(this->sysBarFill);
+        this->Add(this->sdBarBack);
+        this->Add(this->sdBarFill);
+        this->Add(this->sysLabelText);
+        this->Add(this->sysFreeText);
+        this->Add(this->sdLabelText);
+        this->Add(this->sdFreeText);
+        this->Add(this->netIndicator);
+        this->Add(this->wifiBar1);
+        this->Add(this->wifiBar2);
+        this->Add(this->wifiBar3);
+        this->Add(this->batteryOutline);
+        this->Add(this->batteryFill);
+        this->Add(this->batteryCap);
+        this->Add(this->timeText);
         this->Add(this->butText);
         this->Add(this->pageInfoText);
 #pragma GCC diagnostic push
@@ -197,10 +252,15 @@ namespace inst::ui {
 #pragma GCC diagnostic pop
         this->Add(this->infoImage);
         this->Add(this->previewImage);
+        for (auto& highlight : this->shopGridSelectHighlights)
+            this->Add(highlight);
         for (auto& img : this->gridImages)
             this->Add(img);
+        for (auto& icon : this->shopGridSelectIcons)
+            this->Add(icon);
         this->Add(this->gridHighlight);
         this->Add(this->gridTitleText);
+        this->Add(this->imageLoadingText);
         this->Add(this->debugText);
     }
 
@@ -236,7 +296,7 @@ namespace inst::ui {
         }
         const auto& section = this->shopSections[this->selectedSectionIndex];
         std::string label = "inst.shop.top_info"_lang + " " + section.title;
-        if (this->isAllSection() && !this->searchQuery.empty()) {
+        if (!this->searchQuery.empty()) {
             label += " (" + this->searchQuery + ")";
         }
         this->pageInfoText->SetText(label);
@@ -245,10 +305,8 @@ namespace inst::ui {
     void shopInstPage::updateButtonsText() {
         if (this->isInstalledSection())
             this->butText->SetText("inst.shop.buttons_installed"_lang);
-        else if (this->isAllSection())
-            this->butText->SetText("inst.shop.buttons_all"_lang);
         else
-            this->butText->SetText("inst.shop.buttons"_lang);
+            this->butText->SetText("inst.shop.buttons_all"_lang);
     }
 
     void shopInstPage::buildInstalledSection() {
@@ -490,14 +548,16 @@ namespace inst::ui {
     }
 
     void shopInstPage::updatePreview() {
-        if (this->isInstalledSection()) {
+        if (this->isInstalledSection() || this->shopGridMode) {
             this->previewImage->SetVisible(false);
             this->previewKey.clear();
+            this->imageLoadingText->SetVisible(false);
             return;
         }
         if (this->visibleItems.empty()) {
             this->previewImage->SetVisible(false);
             this->previewKey.clear();
+            this->imageLoadingText->SetVisible(false);
             return;
         }
 
@@ -519,11 +579,28 @@ namespace inst::ui {
             return;
         this->previewKey = key;
 
+        bool didDownload = false;
+        bool loadingShown = false;
         auto applyPreviewLayout = [&]() {
             this->previewImage->SetX(900);
             this->previewImage->SetY(230);
             this->previewImage->SetWidth(320);
             this->previewImage->SetHeight(320);
+        };
+        auto updateLoadingText = [&]() {
+            if (didDownload) {
+                const u64 now = armGetSystemTick();
+                const u64 freq = armGetSystemTickFreq();
+                this->imageLoadingUntilTick = now + (freq * 2);
+            }
+            if (this->imageLoadingUntilTick > 0) {
+                const u64 now = armGetSystemTick();
+                bool show = now < this->imageLoadingUntilTick;
+                this->imageLoadingText->SetVisible(show);
+                if (show) {
+                    this->imageLoadingText->SetX(1280 - this->imageLoadingText->GetTextWidth() - 10);
+                }
+            }
         };
 
         if (item.url.empty()) {
@@ -546,9 +623,10 @@ namespace inst::ui {
                 }
                 nsExit();
             }
-            this->previewImage->SetImage("romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
+            this->previewImage->SetImage("romfs:/images/icons/title-placeholder.png");
             applyPreviewLayout();
             this->previewImage->SetVisible(true);
+            updateLoadingText();
             return;
         }
 
@@ -576,6 +654,14 @@ namespace inst::ui {
             std::string filePath = cacheDir + "/" + fileName + ext;
 
             if (!std::filesystem::exists(filePath)) {
+                if (!loadingShown) {
+                    this->imageLoadingText->SetText("Fetching images 0/1");
+                    this->imageLoadingText->SetVisible(true);
+                    this->imageLoadingText->SetX(1280 - this->imageLoadingText->GetTextWidth() - 10);
+                    mainApp->CallForRender();
+                    loadingShown = true;
+                }
+                didDownload = true;
                 bool ok = inst::curl::downloadImageWithAuth(item.iconUrl, filePath.c_str(), inst::config::shopUser, inst::config::shopPass, 8000);
                 if (!ok) {
                     if (std::filesystem::exists(filePath))
@@ -587,14 +673,23 @@ namespace inst::ui {
                 this->previewImage->SetImage(filePath);
                 applyPreviewLayout();
                 this->previewImage->SetVisible(true);
+                if (loadingShown) {
+                    this->imageLoadingText->SetText("Fetching images 1/1");
+                    this->imageLoadingText->SetX(1280 - this->imageLoadingText->GetTextWidth() - 10);
+                    mainApp->CallForRender();
+                }
+                updateLoadingText();
                 return;
             }
+
         }
 
-        this->previewImage->SetImage("romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
+        this->previewImage->SetImage("romfs:/images/icons/title-placeholder.png");
         applyPreviewLayout();
         this->previewImage->SetVisible(true);
+        updateLoadingText();
     }
+
 
     void shopInstPage::updateDebug() {
         if (!this->debugVisible) {
@@ -616,7 +711,7 @@ namespace inst::ui {
             return;
         }
 
-        int selectedIndex = this->isInstalledSection() ? this->gridSelectedIndex : this->menu->GetSelectedIndex();
+        int selectedIndex = this->isInstalledSection() ? this->gridSelectedIndex : (this->shopGridMode ? this->shopGridIndex : this->menu->GetSelectedIndex());
         if (selectedIndex < 0 || selectedIndex >= (int)this->visibleItems.size())
             return;
         const auto& item = this->visibleItems[selectedIndex];
@@ -664,7 +759,7 @@ namespace inst::ui {
         this->menu->ClearItems();
         this->visibleItems.clear();
         const auto& items = this->getCurrentItems();
-        if (this->isAllSection() && !this->searchQuery.empty()) {
+        if (!this->searchQuery.empty()) {
             for (const auto& item : items) {
                 std::string name = item.name;
                 std::string query = this->searchQuery;
@@ -686,13 +781,45 @@ namespace inst::ui {
             return;
         }
 
+        if (this->shopGridMode) {
+            this->updateShopGrid();
+            return;
+        }
+
         for (auto& img : this->gridImages)
             img->SetVisible(false);
         this->gridHighlight->SetVisible(false);
+        this->gridTitleText->SetVisible(false);
+        for (auto& icon : this->shopGridSelectIcons)
+            icon->SetVisible(false);
         this->menu->SetVisible(true);
+        auto formatSize = [](std::uint64_t bytes) {
+            if (bytes == 0)
+                return std::string();
+            const double kb = 1024.0;
+            const double mb = kb * 1024.0;
+            const double gb = mb * 1024.0;
+            char buf[32] = {0};
+            if (bytes >= static_cast<std::uint64_t>(gb)) {
+                std::snprintf(buf, sizeof(buf), "%.1f GB", bytes / gb);
+            } else {
+                std::snprintf(buf, sizeof(buf), "%.0f MB", bytes / mb);
+            }
+            return std::string(buf);
+        };
 
         for (const auto& item : this->visibleItems) {
-            std::string itm = inst::util::shortenString(item.name, 56, true);
+            std::string sizeText = formatSize(item.size);
+            std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
+            int nameLimit = 56;
+            if (!suffix.empty()) {
+                int maxSuffix = static_cast<int>(suffix.size()) + 1;
+                if (nameLimit > maxSuffix)
+                    nameLimit -= maxSuffix;
+            }
+            if (nameLimit < 8)
+                nameLimit = 8;
+            std::string itm = inst::util::shortenString(item.name, nameLimit, true) + suffix;
             auto entry = pu::ui::elm::MenuItem::New(itm);
             entry->SetColor(COLOR("#FFFFFFFF"));
             entry->SetIcon("romfs:/images/icons/checkbox-blank-outline.png");
@@ -776,7 +903,7 @@ namespace inst::ui {
                 }
 
                 if (!applied) {
-                    this->gridImages[i]->SetImage("romfs:/images/awoos/7d8a05cddfef6da4901b20d2698d5a71.png");
+                    this->gridImages[i]->SetImage("romfs:/images/icons/title-placeholder.png");
                     this->gridImages[i]->SetWidth(kGridTileWidth);
                     this->gridImages[i]->SetHeight(kGridTileHeight);
                 }
@@ -812,6 +939,213 @@ namespace inst::ui {
         }
     }
 
+    void shopInstPage::updateShopGrid() {
+        if (!this->shopGridMode || this->visibleItems.empty()) {
+            for (auto& img : this->gridImages)
+                img->SetVisible(false);
+            this->gridHighlight->SetVisible(false);
+            this->gridTitleText->SetVisible(false);
+            for (auto& highlight : this->shopGridSelectHighlights)
+                highlight->SetVisible(false);
+            for (auto& icon : this->shopGridSelectIcons)
+                icon->SetVisible(false);
+            this->imageLoadingText->SetVisible(false);
+            this->shopGridPage = -1;
+            return;
+        }
+
+        this->menu->SetVisible(false);
+        this->previewImage->SetVisible(false);
+
+        if (this->shopGridIndex < 0)
+            this->shopGridIndex = 0;
+        if (this->shopGridIndex >= (int)this->visibleItems.size())
+            this->shopGridIndex = (int)this->visibleItems.size() - 1;
+
+        int page = this->shopGridIndex / kGridItemsPerPage;
+        int pageStart = page * kGridItemsPerPage;
+        int maxIndex = (int)this->visibleItems.size();
+
+        bool didDownload = false;
+        if (page != this->shopGridPage) {
+            std::string cacheDir = inst::config::appDir + "/shop_icons";
+            if (!std::filesystem::exists(cacheDir))
+                std::filesystem::create_directory(cacheDir);
+            int totalToDownload = 0;
+            for (int i = 0; i < kGridItemsPerPage; i++) {
+                int itemIndex = pageStart + i;
+                if (itemIndex >= maxIndex)
+                    continue;
+                const auto& item = this->visibleItems[itemIndex];
+                if (!item.hasIconUrl)
+                    continue;
+                std::string urlPath = item.iconUrl;
+                std::string ext = ".jpg";
+                auto queryPos = urlPath.find('?');
+                std::string cleanPath = queryPos == std::string::npos ? urlPath : urlPath.substr(0, queryPos);
+                auto dotPos = cleanPath.find_last_of('.');
+                if (dotPos != std::string::npos) {
+                    std::string suffix = cleanPath.substr(dotPos);
+                    if (suffix.size() <= 5 && suffix.find('/') == std::string::npos && suffix.find('?') == std::string::npos)
+                        ext = suffix;
+                }
+                std::string fileName;
+                if (item.hasTitleId)
+                    fileName = std::to_string(item.titleId);
+                else
+                    fileName = std::to_string(std::hash<std::string>{}(item.iconUrl));
+                std::string filePath = cacheDir + "/" + fileName + ext;
+                if (!std::filesystem::exists(filePath))
+                    totalToDownload++;
+            }
+
+            bool loadingShown = false;
+            int downloadedCount = 0;
+            if (totalToDownload > 0) {
+                this->imageLoadingText->SetText("Fetching images 0/" + std::to_string(totalToDownload));
+                this->imageLoadingText->SetVisible(true);
+                this->imageLoadingText->SetX(1280 - this->imageLoadingText->GetTextWidth() - 10);
+                mainApp->CallForRender();
+                loadingShown = true;
+            }
+
+            for (int i = 0; i < kGridItemsPerPage; i++) {
+                int itemIndex = pageStart + i;
+                int row = i / kGridCols;
+                int col = i % kGridCols;
+                int x = kGridStartX + (col * (kGridTileWidth + kGridGap));
+                int y = kGridStartY + (row * (kGridTileHeight + kGridGap));
+                this->gridImages[i]->SetX(x);
+                this->gridImages[i]->SetY(y);
+                this->gridImages[i]->SetWidth(kGridTileWidth);
+                this->gridImages[i]->SetHeight(kGridTileHeight);
+                if (itemIndex >= maxIndex) {
+                    this->gridImages[i]->SetVisible(false);
+                    continue;
+                }
+
+                const auto& item = this->visibleItems[itemIndex];
+                bool applied = false;
+                if (item.hasIconUrl) {
+                    std::string urlPath = item.iconUrl;
+                    std::string ext = ".jpg";
+                    auto queryPos = urlPath.find('?');
+                    std::string cleanPath = queryPos == std::string::npos ? urlPath : urlPath.substr(0, queryPos);
+                    auto dotPos = cleanPath.find_last_of('.');
+                    if (dotPos != std::string::npos) {
+                        std::string suffix = cleanPath.substr(dotPos);
+                        if (suffix.size() <= 5 && suffix.find('/') == std::string::npos && suffix.find('?') == std::string::npos)
+                            ext = suffix;
+                    }
+
+                    std::string fileName;
+                    if (item.hasTitleId)
+                        fileName = std::to_string(item.titleId);
+                    else
+                        fileName = std::to_string(std::hash<std::string>{}(item.iconUrl));
+                    std::string filePath = cacheDir + "/" + fileName + ext;
+
+                    if (!std::filesystem::exists(filePath)) {
+                        didDownload = true;
+                        bool ok = inst::curl::downloadImageWithAuth(item.iconUrl, filePath.c_str(), inst::config::shopUser, inst::config::shopPass, 8000);
+                        if (!ok && std::filesystem::exists(filePath))
+                            std::filesystem::remove(filePath);
+                        if (loadingShown) {
+                            downloadedCount++;
+                            this->imageLoadingText->SetText("Fetching images " + std::to_string(downloadedCount) + "/" + std::to_string(totalToDownload));
+                            this->imageLoadingText->SetX(1280 - this->imageLoadingText->GetTextWidth() - 10);
+                            mainApp->CallForRender();
+                        }
+                    }
+
+                if (std::filesystem::exists(filePath)) {
+                    this->gridImages[i]->SetImage(filePath);
+                    this->gridImages[i]->SetWidth(kGridTileWidth);
+                    this->gridImages[i]->SetHeight(kGridTileHeight);
+                    applied = true;
+                }
+            }
+
+            if (!applied) {
+                this->gridImages[i]->SetImage("romfs:/images/icons/title-placeholder.png");
+                this->gridImages[i]->SetWidth(kGridTileWidth);
+                this->gridImages[i]->SetHeight(kGridTileHeight);
+            }
+            this->gridImages[i]->SetVisible(true);
+
+        }
+            this->shopGridPage = page;
+        }
+
+        if (didDownload) {
+            const u64 now = armGetSystemTick();
+            const u64 freq = armGetSystemTickFreq();
+            this->imageLoadingUntilTick = now + (freq * 2);
+        }
+        if (this->imageLoadingUntilTick > 0) {
+            const u64 now = armGetSystemTick();
+            bool show = now < this->imageLoadingUntilTick;
+            this->imageLoadingText->SetVisible(show);
+            if (show) {
+                this->imageLoadingText->SetX(1280 - this->imageLoadingText->GetTextWidth() - 10);
+            }
+        }
+
+        for (int i = 0; i < kGridItemsPerPage; i++) {
+            int itemIndex = pageStart + i;
+            int row = i / kGridCols;
+            int col = i % kGridCols;
+            int x = kGridStartX + (col * (kGridTileWidth + kGridGap));
+            int y = kGridStartY + (row * (kGridTileHeight + kGridGap));
+
+            if (itemIndex >= maxIndex) {
+                this->shopGridSelectHighlights[i]->SetVisible(false);
+                this->shopGridSelectIcons[i]->SetVisible(false);
+                continue;
+            }
+
+            const auto& item = this->visibleItems[itemIndex];
+            bool isSelected = false;
+            if (!this->selectedItems.empty() && !item.url.empty()) {
+                isSelected = std::any_of(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& entry) {
+                    return entry.url == item.url;
+                });
+            }
+            const int iconSize = 120;
+            this->shopGridSelectIcons[i]->SetX(x + (kGridTileWidth - iconSize) / 2);
+            this->shopGridSelectIcons[i]->SetY(y + (kGridTileHeight - iconSize) / 2);
+            this->shopGridSelectIcons[i]->SetVisible(isSelected);
+            this->shopGridSelectHighlights[i]->SetX(x - 4);
+            this->shopGridSelectHighlights[i]->SetY(y - 4);
+            this->shopGridSelectHighlights[i]->SetWidth(kGridTileWidth + 8);
+            this->shopGridSelectHighlights[i]->SetHeight(kGridTileHeight + 8);
+            this->shopGridSelectHighlights[i]->SetVisible(isSelected);
+        }
+
+        int slot = this->shopGridIndex - pageStart;
+        if (slot >= 0 && slot < kGridItemsPerPage) {
+            int row = slot / kGridCols;
+            int col = slot % kGridCols;
+            int x = kGridStartX + (col * (kGridTileWidth + kGridGap)) - 4;
+            int y = kGridStartY + (row * (kGridTileHeight + kGridGap)) - 4;
+            this->gridHighlight->SetX(x);
+            this->gridHighlight->SetY(y);
+            this->gridHighlight->SetWidth(kGridTileWidth + 8);
+            this->gridHighlight->SetHeight(kGridTileHeight + 8);
+            this->gridHighlight->SetVisible(true);
+        } else {
+            this->gridHighlight->SetVisible(false);
+        }
+
+        if (this->shopGridIndex >= 0 && this->shopGridIndex < (int)this->visibleItems.size()) {
+            std::string title = inst::util::shortenString(this->visibleItems[this->shopGridIndex].name, 70, true);
+            this->gridTitleText->SetText(title);
+            this->gridTitleText->SetVisible(true);
+        } else {
+            this->gridTitleText->SetVisible(false);
+        }
+    }
+
     void shopInstPage::selectTitle(int selectedIndex) {
         if (selectedIndex < 0 || selectedIndex >= (int)this->visibleItems.size())
             return;
@@ -821,10 +1155,24 @@ namespace inst::ui {
         auto selected = std::find_if(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& entry) {
             return entry.url == item.url;
         });
-        if (selected != this->selectedItems.end())
+        bool wasSelected = (selected != this->selectedItems.end());
+        if (wasSelected)
             this->selectedItems.erase(selected);
         else
             this->selectedItems.push_back(item);
+        if (wasSelected && IsBaseItem(item)) {
+            std::uint64_t baseTitleId = 0;
+            if (DeriveBaseTitleId(item, baseTitleId)) {
+                this->selectedItems.erase(std::remove_if(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& entry) {
+                    if (entry.appType != NcmContentMetaType_Patch)
+                        return false;
+                    std::uint64_t updateBaseId = 0;
+                    if (!DeriveBaseTitleId(entry, updateBaseId))
+                        return false;
+                    return updateBaseId == baseTitleId;
+                }), this->selectedItems.end());
+            }
+        }
         this->updateRememberedSelection();
         this->drawMenuItems(false);
     }
@@ -877,11 +1225,14 @@ namespace inst::ui {
 
         this->selectedSectionIndex = 0;
         for (size_t i = 0; i < this->shopSections.size(); i++) {
-            if (this->shopSections[i].id == "recommended") {
+            if (this->shopSections[i].id == "new") {
                 this->selectedSectionIndex = static_cast<int>(i);
                 break;
             }
         }
+        this->shopGridMode = false;
+        this->shopGridIndex = 0;
+        this->shopGridPage = -1;
         this->gridSelectedIndex = 0;
         this->gridPage = -1;
         this->updateSectionText();
@@ -955,6 +1306,176 @@ namespace inst::ui {
             this->updateRememberedSelection();
             mainApp->LoadLayout(mainApp->mainPage);
         }
+        if (Down & HidNpadButton_Minus) {
+            if (!this->isInstalledSection()) {
+                this->shopGridMode = !this->shopGridMode;
+                this->touchActive = false;
+                this->touchMoved = false;
+                if (this->shopGridMode) {
+                    this->shopGridIndex = this->menu->GetSelectedIndex();
+                    if (this->shopGridIndex < 0)
+                        this->shopGridIndex = 0;
+                    this->shopGridPage = -1;
+                    this->updateShopGrid();
+                } else {
+                    if (!this->menu->GetItems().empty()) {
+                        int sel = this->shopGridIndex;
+                        if (sel < 0 || sel >= (int)this->menu->GetItems().size())
+                            sel = 0;
+                        this->menu->SetSelectedIndex(sel);
+                    }
+                    this->updateSectionText();
+                    this->updateButtonsText();
+                    this->drawMenuItems(false);
+                    this->updatePreview();
+                }
+                return;
+            }
+        }
+        if (this->shopGridMode) {
+            if (Down & HidNpadButton_Plus) {
+                if (!this->visibleItems.empty() && this->selectedItems.empty()) {
+                    this->selectTitle(this->shopGridIndex);
+                }
+                if (!this->selectedItems.empty())
+                    this->startInstall();
+            }
+            if (Down & HidNpadButton_L) {
+                if (this->shopSections.size() > 1) {
+                    this->selectedSectionIndex = (this->selectedSectionIndex - 1 + (int)this->shopSections.size()) % (int)this->shopSections.size();
+                    this->searchQuery.clear();
+                    this->shopGridIndex = 0;
+                    this->shopGridPage = -1;
+                    this->updateSectionText();
+                    this->updateButtonsText();
+                    this->drawMenuItems(false);
+                }
+            }
+            if (Down & HidNpadButton_R) {
+                if (this->shopSections.size() > 1) {
+                    this->selectedSectionIndex = (this->selectedSectionIndex + 1) % (int)this->shopSections.size();
+                    this->searchQuery.clear();
+                    this->shopGridIndex = 0;
+                    this->shopGridPage = -1;
+                    this->updateSectionText();
+                    this->updateButtonsText();
+                    this->drawMenuItems(false);
+                }
+            }
+            if (Down & HidNpadButton_ZR) {
+                std::string query = inst::util::softwareKeyboard("inst.shop.search_hint"_lang, this->searchQuery, 60);
+                this->searchQuery = query;
+                this->updateSectionText();
+                this->drawMenuItems(false);
+            }
+            u64 dirKeys = Down & (HidNpadButton_Up | HidNpadButton_Down | HidNpadButton_Left | HidNpadButton_Right);
+            if (dirKeys == 0) {
+                const bool stickUp = (Held & HidNpadButton_StickLUp) != 0;
+                const bool stickDown = (Held & HidNpadButton_StickLDown) != 0;
+                const bool stickLeft = (Held & HidNpadButton_StickLLeft) != 0;
+                const bool stickRight = (Held & HidNpadButton_StickLRight) != 0;
+                if (!stickUp && !stickDown && !stickLeft && !stickRight) {
+                    this->gridHoldDirX = 0;
+                    this->gridHoldDirY = 0;
+                    this->gridHoldStartTick = 0;
+                    this->gridHoldLastTick = 0;
+                } else {
+                    int dirX = stickRight ? 1 : (stickLeft ? -1 : 0);
+                    int dirY = stickDown ? 1 : (stickUp ? -1 : 0);
+                    u64 now = armGetSystemTick();
+                    if (this->gridHoldDirX != dirX || this->gridHoldDirY != dirY || this->gridHoldStartTick == 0) {
+                        this->gridHoldDirX = dirX;
+                        this->gridHoldDirY = dirY;
+                        this->gridHoldStartTick = now;
+                        this->gridHoldLastTick = now;
+                        if (dirY != 0)
+                            dirKeys |= (dirY > 0) ? HidNpadButton_Down : HidNpadButton_Up;
+                        else if (dirX != 0)
+                            dirKeys |= (dirX > 0) ? HidNpadButton_Right : HidNpadButton_Left;
+                    } else {
+                        const u64 freq = armGetSystemTickFreq();
+                        const u64 delayTicks = (freq * 200) / 1000;
+                        const u64 repeatTicks = (freq * 90) / 1000;
+                        if (now - this->gridHoldStartTick >= delayTicks && now - this->gridHoldLastTick >= repeatTicks) {
+                            if (dirY != 0)
+                                dirKeys |= (dirY > 0) ? HidNpadButton_Down : HidNpadButton_Up;
+                            else if (dirX != 0)
+                                dirKeys |= (dirX > 0) ? HidNpadButton_Right : HidNpadButton_Left;
+                            this->gridHoldLastTick = now;
+                        }
+                    }
+                }
+            }
+            if ((Down & HidNpadButton_A) || (Up & TouchPseudoKey)) {
+                if (!this->visibleItems.empty()) {
+                    if (this->shopGridIndex < 0)
+                        this->shopGridIndex = 0;
+                    if (this->shopGridIndex >= (int)this->visibleItems.size())
+                        this->shopGridIndex = (int)this->visibleItems.size() - 1;
+                    this->selectTitle(this->shopGridIndex);
+                    if (this->visibleItems.size() == 1 && this->selectedItems.size() == 1) {
+                        this->startInstall();
+                    }
+                }
+            }
+            if (!this->visibleItems.empty()) {
+                int newIndex = this->shopGridIndex;
+                if (dirKeys & HidNpadButton_Up)
+                    newIndex -= kGridCols;
+                if (dirKeys & HidNpadButton_Down)
+                    newIndex += kGridCols;
+                if (dirKeys & HidNpadButton_Left)
+                    newIndex -= 1;
+                if (dirKeys & HidNpadButton_Right)
+                    newIndex += 1;
+
+                if (newIndex < 0)
+                    newIndex = 0;
+                if (newIndex >= (int)this->visibleItems.size())
+                    newIndex = (int)this->visibleItems.size() - 1;
+
+                if (newIndex != this->shopGridIndex) {
+                    this->shopGridIndex = newIndex;
+                    this->updateShopGrid();
+                }
+            }
+            if (!Pos.IsEmpty()) {
+                const int gridW = kGridCols * kGridTileWidth + (kGridCols - 1) * kGridGap;
+                const int gridH = kGridRows * kGridTileHeight + (kGridRows - 1) * kGridGap;
+                const bool inGrid = (Pos.X >= kGridStartX) && (Pos.X <= (kGridStartX + gridW)) && (Pos.Y >= kGridStartY) && (Pos.Y <= (kGridStartY + gridH));
+                if (inGrid) {
+                    const int relX = Pos.X - kGridStartX;
+                    const int relY = Pos.Y - kGridStartY;
+                    const int col = relX / (kGridTileWidth + kGridGap);
+                    const int row = relY / (kGridTileHeight + kGridGap);
+                    const int tileX = relX - (col * (kGridTileWidth + kGridGap));
+                    const int tileY = relY - (row * (kGridTileHeight + kGridGap));
+                    if (col >= 0 && col < kGridCols && row >= 0 && row < kGridRows && tileX <= kGridTileWidth && tileY <= kGridTileHeight) {
+                        int page = 0;
+                        if (this->shopGridIndex > 0)
+                            page = this->shopGridIndex / kGridItemsPerPage;
+                        int pageStart = page * kGridItemsPerPage;
+                        int index = pageStart + (row * kGridCols) + col;
+                        if (index >= 0 && index < (int)this->visibleItems.size() && index != this->shopGridIndex) {
+                            this->shopGridIndex = index;
+                            this->updateShopGrid();
+                        }
+                        this->touchActive = true;
+                        this->touchMoved = false;
+                    }
+                }
+            } else if (this->touchActive) {
+                if (!this->visibleItems.empty()) {
+                    this->selectTitle(this->shopGridIndex);
+                    if (this->visibleItems.size() == 1 && this->selectedItems.size() == 1) {
+                        this->startInstall();
+                    }
+                }
+                this->touchActive = false;
+                this->touchMoved = false;
+            }
+            return;
+        }
         if ((Down & HidNpadButton_A) || (Up & TouchPseudoKey)) {
             if (this->isInstalledSection()) {
                 this->showInstalledDetails();
@@ -971,6 +1492,8 @@ namespace inst::ui {
                 this->searchQuery.clear();
                 this->gridSelectedIndex = 0;
                 this->gridPage = -1;
+                this->shopGridIndex = 0;
+                this->shopGridPage = -1;
                 this->updateSectionText();
                 this->updateButtonsText();
                 this->drawMenuItems(false);
@@ -982,18 +1505,18 @@ namespace inst::ui {
                 this->searchQuery.clear();
                 this->gridSelectedIndex = 0;
                 this->gridPage = -1;
+                this->shopGridIndex = 0;
+                this->shopGridPage = -1;
                 this->updateSectionText();
                 this->updateButtonsText();
                 this->drawMenuItems(false);
             }
         }
         if (Down & HidNpadButton_ZR) {
-            if (this->isAllSection()) {
-                std::string query = inst::util::softwareKeyboard("inst.shop.search_hint"_lang, this->searchQuery, 60);
-                this->searchQuery = query;
-                this->updateSectionText();
-                this->drawMenuItems(false);
-            }
+            std::string query = inst::util::softwareKeyboard("inst.shop.search_hint"_lang, this->searchQuery, 60);
+            this->searchQuery = query;
+            this->updateSectionText();
+            this->drawMenuItems(false);
         }
         if (this->isInstalledSection() && !this->visibleItems.empty()) {
             int newIndex = this->gridSelectedIndex;
@@ -1016,10 +1539,6 @@ namespace inst::ui {
                 this->gridSelectedIndex = newIndex;
                 this->updateInstalledGrid();
             }
-        }
-        if (Down & HidNpadButton_ZL) {
-            this->debugVisible = !this->debugVisible;
-            this->updateDebug();
         }
         if (Down & HidNpadButton_Y) {
             if (!this->isInstalledSection()) {
@@ -1045,8 +1564,114 @@ namespace inst::ui {
                 if (!this->selectedItems.empty()) this->startInstall();
             }
         }
-        this->updatePreview();
-        this->updateInstalledGrid();
+        if (!this->isInstalledSection() && !this->shopGridMode && !this->menu->GetItems().empty()) {
+            const u64 holdMask = HidNpadButton_Up | HidNpadButton_Down | HidNpadButton_StickLUp | HidNpadButton_StickLDown;
+            const bool heldUp = (Held & (HidNpadButton_Up | HidNpadButton_StickLUp)) != 0;
+            const bool heldDown = (Held & (HidNpadButton_Down | HidNpadButton_StickLDown)) != 0;
+            const bool isHolding = (Held & holdMask) != 0;
+            if (!isHolding || (heldUp && heldDown)) {
+                this->holdDirection = 0;
+                this->holdStartTick = 0;
+                this->lastHoldTick = 0;
+            } else {
+                int direction = heldDown ? 1 : -1;
+                u64 now = armGetSystemTick();
+                if (this->holdDirection != direction || this->holdStartTick == 0) {
+                    this->holdDirection = direction;
+                    this->holdStartTick = now;
+                    this->lastHoldTick = now;
+                }
+                if ((int)this->menu->GetItems().size() > this->menu->GetNumberOfItemsToShow()) {
+                    const u64 freq = armGetSystemTickFreq();
+                    const u64 delayTicks = (freq * 300) / 1000;
+                    const u64 repeatTicks = (freq * 70) / 1000;
+                    if (now - this->holdStartTick >= delayTicks && now - this->lastHoldTick >= repeatTicks) {
+                        int currentIndex = this->menu->GetSelectedIndex();
+                        int maxIndex = static_cast<int>(this->menu->GetItems().size()) - 1;
+                        if (direction > 0) {
+                            if (currentIndex < maxIndex)
+                                this->menu->OnInput(HidNpadButton_AnyDown, 0, 0, pu::ui::Touch::Empty);
+                        } else {
+                            if (currentIndex > 0)
+                                this->menu->OnInput(HidNpadButton_AnyUp, 0, 0, pu::ui::Touch::Empty);
+                        }
+                        this->lastHoldTick = now;
+                    }
+                }
+            }
+        } else {
+            this->holdDirection = 0;
+            this->holdStartTick = 0;
+            this->lastHoldTick = 0;
+        }
+        if (!this->isInstalledSection() && this->menu->IsVisible()) {
+            if (!Pos.IsEmpty()) {
+                const int menuX = this->menu->GetProcessedX();
+                const int menuY = this->menu->GetProcessedY();
+                const int menuW = this->menu->GetWidth();
+                const int menuH = this->menu->GetHeight();
+                const bool inMenu = (Pos.X >= menuX) && (Pos.X <= (menuX + menuW)) && (Pos.Y >= menuY) && (Pos.Y <= (menuY + menuH));
+                if (!this->touchActive && inMenu) {
+                    this->touchActive = true;
+                    this->touchMoved = false;
+                }
+            } else if (this->touchActive) {
+                if (!this->touchMoved && !this->menu->GetItems().empty()) {
+                    this->selectTitle(this->menu->GetSelectedIndex());
+                    if (this->menu->GetItems().size() == 1 && this->selectedItems.size() == 1) {
+                        this->startInstall();
+                    }
+                }
+                this->touchActive = false;
+                this->touchMoved = false;
+            }
+        } else {
+            this->touchActive = false;
+            this->touchMoved = false;
+        }
+        if (this->isInstalledSection() && !this->visibleItems.empty()) {
+            if (!Pos.IsEmpty()) {
+                const int gridW = kGridCols * kGridTileWidth + (kGridCols - 1) * kGridGap;
+                const int gridH = kGridRows * kGridTileHeight + (kGridRows - 1) * kGridGap;
+                const bool inGrid = (Pos.X >= kGridStartX) && (Pos.X <= (kGridStartX + gridW)) && (Pos.Y >= kGridStartY) && (Pos.Y <= (kGridStartY + gridH));
+                if (!this->touchActive) {
+                    if (inGrid) {
+                        this->touchActive = true;
+                        this->touchMoved = false;
+                    }
+                } else if (inGrid) {
+                    const int relX = Pos.X - kGridStartX;
+                    const int relY = Pos.Y - kGridStartY;
+                    const int col = relX / (kGridTileWidth + kGridGap);
+                    const int row = relY / (kGridTileHeight + kGridGap);
+                    const int tileX = relX - (col * (kGridTileWidth + kGridGap));
+                    const int tileY = relY - (row * (kGridTileHeight + kGridGap));
+                    if (col >= 0 && col < kGridCols && row >= 0 && row < kGridRows && tileX <= kGridTileWidth && tileY <= kGridTileHeight) {
+                        int page = 0;
+                        if (this->gridSelectedIndex > 0)
+                            page = this->gridSelectedIndex / kGridItemsPerPage;
+                        int pageStart = page * kGridItemsPerPage;
+                        int index = pageStart + (row * kGridCols) + col;
+                        if (index >= 0 && index < (int)this->visibleItems.size() && index != this->gridSelectedIndex) {
+                            this->gridSelectedIndex = index;
+                            this->updateInstalledGrid();
+                        }
+                    }
+                }
+            } else if (this->touchActive) {
+                if (!this->touchMoved) {
+                    this->showInstalledDetails();
+                }
+                this->touchActive = false;
+                this->touchMoved = false;
+            }
+        }
+        if (this->shopGridMode) {
+            this->updateShopGrid();
+        } else {
+            this->updatePreview();
+            this->updateInstalledGrid();
+        }
         this->updateDebug();
     }
 

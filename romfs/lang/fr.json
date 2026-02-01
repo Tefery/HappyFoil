@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "Installer à partir de la carte SD",
+            "hdd": "Installer depuis un SSD/HDD USB",
             "net": "Installer à partir d'un LAN ou d'internet",
             "shop": "Installer depuis Ownfoil",
             "usb": "Installer à partir d'un périphèrique USB",
@@ -24,9 +25,13 @@
                 "desc": "Branchez un appareil compatible pour installer via le port USB"
             }
         },
+        "hdd": {
+            "title": "Aucun disque USB détecté",
+            "notfound": "Branchez un SSD ou un disque dur USB pour installer depuis celui-ci."
+        },
         "applet": {
             "title": "Le mode Applet n'est pas compatible",
-            "desc": "Vous pouvez rencontrer des problèmes en utilisant CyberFoil en mode Applet.\n\n Si vous avez des problèmes, veuillez lancer Awoo en mode 'non-Applet' (Maintenez R pendant le démarrage d'un jeu)!"
+            "desc": "Vous pouvez rencontrer des problèmes en utilisant CyberFoil en mode Applet.\n\n Si vous avez des problèmes, veuillez lancer CyberFoil en mode 'non-Applet' (maintenez R pendant le démarrage d'un jeu)!"
         },
         "buttons": " Select     Quitter"
     },
@@ -60,23 +65,24 @@
             "buttons1": " Sélectionnez un fichier     Tout sélectionner    Installer un/des fichier(s)     Annuler"
         },
         "shop": {
-            "loading": "Loading shop list...",
-            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
-            "failed": "Failed to load shop",
+            "loading": "Chargement de la liste de la boutique...",
+            "top_info": "Sélectionnez les fichiers que vous voulez installer depuis la boutique, puis appuyez sur le bouton Plus !",
+            "failed": "Échec du chargement de la boutique",
+            "unreachable": "Impossible de joindre la boutique.",
             "encrypted_unsupported": "Les réponses chiffrées de la boutique ne sont pas prises en charge. Désactivez « Chiffrer la boutique » dans les paramètres d’Ownfoil.",
-            "empty": "Shop has no files.",
-            "source_string": " from Ownfoil shop",
+            "empty": "La boutique ne contient aucun fichier.",
+            "source_string": " depuis la boutique Ownfoil",
             "buttons_loading": " Annuler",
-            "buttons": " Sélectionnez un fichier     Tout sélectionner    Installer un/des fichier(s)     Actualiser    / Section     Annuler",
-            "buttons_all": " Sélectionnez un fichier     Tout sélectionner    Installer un/des fichier(s)     Actualiser    / Section     Search     Annuler",
-            "search_hint": "Search all titles",
-            "update_prompt_title": "Install updates?",
-            "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
-            "motd_title": "Message of the day",
-            "buttons_installed": " Details     Refresh    / Section     Cancel",
-            "detail_type": "Type: ",
-            "detail_titleid": "Title ID: ",
-            "detail_version": "Version: "
+            "buttons": " Sélectionner un fichier     Tout sélectionner    Installer le(s) fichier(s)     Actualiser    / Section     Affichage     Annuler",
+            "buttons_all": " Sélectionner un fichier     Tout sélectionner    Installer le(s) fichier(s)     Actualiser    / Section     Rechercher     Affichage     Annuler",
+            "search_hint": "Rechercher dans tous les titres",
+            "update_prompt_title": "Installer les mises à jour ?",
+            "update_prompt_desc": "Inclure les mises à jour disponibles pour les titres sélectionnés ? Mises à jour trouvées : ",
+            "motd_title": "Message du jour",
+            "buttons_installed": " Détails     Actualiser    / Section     Annuler",
+            "detail_type": "Type : ",
+            "detail_titleid": "ID du titre : ",
+            "detail_version": "Version : "
         },
         "sd": {
             "help": {
@@ -89,6 +95,18 @@
             "delete_info_multi": " fichiers installés avec succès ! Les supprimer de la carte SD ?",
             "delete_desc": "Les fichiers originaux ne sont plus nécessaires une fois qu'ils ont été installés.",
             "buttons": " Sélectionnez un fichier     Tout sélectionner     Installer un/des fichier(s)     Aide     Annuler"
+        },
+        "hdd": {
+            "help": {
+                "title": "Aide",
+                "desc": "Branchez un SSD ou un disque dur USB, recherchez et sélectionnez des fichiers NSP, NSZ, XCI\nou XCZ, puis appuyez sur le bouton Plus."
+            },
+            "top_info": "Sélectionnez les fichiers à installer depuis le disque USB, puis appuyez sur le bouton Plus !",
+            "source_string": " depuis le disque USB",
+            "delete_info": " installé ! Le supprimer du disque USB ?",
+            "delete_info_multi": " fichiers installés avec succès ! Les supprimer du disque USB ?",
+            "delete_desc": "Les fichiers originaux ne sont plus nécessaires après installation",
+            "buttons": " Sélectionner un fichier     Tout sélectionner     Installer le(s) fichier(s)     Aide     Annuler"
         },
         "usb": {
             "help": {
@@ -147,7 +165,7 @@
         "backup_failed": "Impossible de sauvegarder le fichier Patches.ini d'Hekate ! Installer quand même ?",
         "backup_failed_desc": "Si vous n'utilisez pas Hekate, vous pouvez ignorer cet avertissement.",
         "download_failed": "Impossible de télécharger les sigpatches",
-        "download_failed_desc": "Vous avez peut-être fourni une source invalide dans les paramètres de l'installateur Awoo,\nou l'hôte est peut-être juste en panne en ce moment.",
+        "download_failed_desc": "Vous avez peut-être fourni une source invalide dans les paramètres de CyberFoil,\nou l'hôte est peut-être juste en panne en ce moment.",
         "version_text2": "Vos sigpatches ont été mis à jour pour la version d'HOS ",
         "install_complete": "Installation complète !",
         "complete_desc": "Redémarrez votre console pour appliquer",
@@ -166,19 +184,19 @@
             "nca_verify": "Vérifier les signatures des NCA avant l'installation",
             "boost_mode": "Activer le  \"boost mode\" pendant l'installation",
             "ask_delete": "Demande de suppression des fichiers originaux après l'installation",
-            "auto_update": "Vérifier les mises à jour de l'installateur Awoo automatiquement",
+            "auto_update": "Vérifier automatiquement les mises à jour de CyberFoil",
             "gay_option": "Enlever la catgirl dans le menu",
             "sig_url": "Sigpatches URL: ",
             "shop_url": "URL Ownfoil: ",
             "shop_user": "Utilisateur Ownfoil: ",
             "shop_pass": "Mot de passe Ownfoil: ",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "Masquer les titres installés dans l’eShop",
             "shop_hide_installed_section": "Masquer la section Install\u00e9s dans l\u2019eShop",
             "language": "Langage: ",
-            "check_update": "Vérifiez les mises à jour de l'installateur Awoo",
+            "check_update": "Vérifier les mises à jour de CyberFoil",
             "credits": "Crédits",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "Activer les sons",
+            "oled": "Activer le mode OLED"
         },
         "nca_warn": {
             "title": "Avertissement!",
@@ -187,18 +205,18 @@
         },
         "sig_hint": "Entrez l'URL pour obtenir les sigpatches",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "Entrez l’URL de votre boutique Ownfoil (exemple : http://192.168.1.2:8465)",
+            "user_hint": "Entrez votre nom d’utilisateur Ownfoil (facultatif)",
+            "pass_hint": "Entrez votre mot de passe Ownfoil (facultatif)"
         },
         "update": {
             "title": "Mise à jour disponible",
             "desc0": "CyberFoil ",
             "desc1": " est disponible dès maintenant ! Prêt à mettre à jour ?",
             "opt0": "Mise à jour",
-            "top_info": "Mise à jour de l'installateur Awoo ",
-            "bot_info": "Téléchargement de l'installateur Awoo ",
-            "bot_info2": "Extraction de l'installateur Awoo ",
+            "top_info": "Mise à jour de CyberFoil ",
+            "bot_info": "Téléchargement de CyberFoil ",
+            "bot_info2": "Extraction de CyberFoil ",
             "complete": "Mise à jour complète !",
             "failed": "La mise à jour a échoué !",
             "end_desc": "Le logiciel sera maintenant fermé.",
@@ -214,7 +232,7 @@
             "desc": "Le logiciel sera fermé après avoir changé de langue. Appuyez sur B pour annuler.",
             "system_language": "Système"
         },
-        "title": "Modifiez les paramètres de Awoo Installler !",
+        "title": "Modifiez les paramètres de CyberFoil !",
         "buttons": " Sélectionner/Modifier     Annuler"
     },
     "common": {

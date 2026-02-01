@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "Instalar desde tarjeta SD",
+            "hdd": "Instalar desde SSD/HDD USB",
             "net": "Instalar a través de red local o Internet",
             "shop": "Instalar desde Ownfoil",
             "usb": "Instalar por USB",
@@ -23,6 +24,10 @@
                 "title": "No se ha detectado una conexión USB",
                 "desc": "Conecta a un dispositivo compatible para hacer instalaciones por USB"
             }
+        },
+        "hdd": {
+            "title": "No se detectó ninguna unidad USB",
+            "notfound": "Conecta un SSD o disco duro USB para instalar desde él."
         },
         "applet": {
             "title": "Modo Applet no soportado",
@@ -60,23 +65,24 @@
             "buttons1": " Selecionar Archivo     Seleccionar Todos     Instalar Archivo(s)     Cancelar"
         },
         "shop": {
-            "loading": "Loading shop list...",
-            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
-            "failed": "Failed to load shop",
+            "loading": "Cargando lista de la tienda...",
+            "top_info": "Selecciona los archivos que quieres instalar desde la tienda y luego pulsa el botón +",
+            "failed": "No se pudo cargar la tienda",
+            "unreachable": "No se puede acceder a la tienda.",
             "encrypted_unsupported": "Las respuestas cifradas de la tienda no son compatibles. Desactiva «Cifrar tienda» en los ajustes de Ownfoil.",
-            "empty": "Shop has no files.",
-            "source_string": " from Ownfoil shop",
+            "empty": "La tienda no tiene archivos.",
+            "source_string": " desde la tienda de Ownfoil",
             "buttons_loading": " Cancelar",
-            "buttons": " Selecionar Archivo     Seleccionar Todos     Instalar Archivo(s)     Actualizar    / Section     Cancelar",
-            "buttons_all": " Selecionar Archivo     Seleccionar Todos     Instalar Archivo(s)     Actualizar    / Section     Search     Cancelar",
-            "search_hint": "Search all titles",
-            "update_prompt_title": "Install updates?",
-            "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
-            "motd_title": "Message of the day",
-            "buttons_installed": " Details     Refresh    / Section     Cancel",
-            "detail_type": "Type: ",
-            "detail_titleid": "Title ID: ",
-            "detail_version": "Version: "
+            "buttons": " Selecionar Archivo     Seleccionar Todos     Instalar Archivo(s)     Actualizar    / Sección     Ver     Cancelar",
+            "buttons_all": " Selecionar Archivo     Seleccionar Todos     Instalar Archivo(s)     Actualizar    / Sección     Buscar     Ver     Cancelar",
+            "search_hint": "Buscar en todos los títulos",
+            "update_prompt_title": "¿Instalar actualizaciones?",
+            "update_prompt_desc": "¿Incluir las actualizaciones disponibles para los títulos seleccionados? Actualizaciones encontradas: ",
+            "motd_title": "Mensaje del día",
+            "buttons_installed": " Detalles     Actualizar    / Sección     Cancelar",
+            "detail_type": "Tipo: ",
+            "detail_titleid": "ID de título: ",
+            "detail_version": "Versión: "
         },
         "sd": {
             "help": {
@@ -89,6 +95,18 @@
             "delete_info_multi": " archivos instalados con éxito. ¿Borrarlos de la tarjeta SD?",
             "delete_desc": "Los archivos originales no hacen falta después de ser instalados",
             "buttons": " Selecionar Archivo     Seleccionar Todo     Instalar Archivo(s)     Ayuda     Cancelar"
+        },
+        "hdd": {
+            "help": {
+                "title": "Ayuda",
+                "desc": "Conecta un SSD o disco duro USB, busca y selecciona archivos NSP, NSZ, XCI\no XCZ y luego pulsa el botón +."
+            },
+            "top_info": "Selecciona los archivos que quieres instalar y luego pulsa el botón +",
+            "source_string": " desde la unidad USB",
+            "delete_info": " instalado. ¿Borrarlo de la unidad USB?",
+            "delete_info_multi": " archivos instalados con éxito. ¿Borrarlos de la unidad USB?",
+            "delete_desc": "Los archivos originales no son necesarios después de haber sido instalados",
+            "buttons": " Selecionar Archivo     Seleccionar Todos     Instalar Archivo(s)     Ayuda     Cancelar"
         },
         "usb": {
             "help": {
@@ -172,13 +190,13 @@
             "shop_url": "URL de Ownfoil: ",
             "shop_user": "Usuario de Ownfoil: ",
             "shop_pass": "Contraseña de Ownfoil: ",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "Ocultar los títulos instalados en la eShop",
             "shop_hide_installed_section": "Ocultar la secci\u00f3n Instalados en la eShop",
             "language": "Idioma: ",
             "check_update": "Buscar actualizaciones de CyberFoil",
             "credits": "Créditos",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "Habilitar sonidos",
+            "oled": "Habilitar modo OLED"
         },
         "nca_warn": {
             "title": "¡Advertencia!",
@@ -187,9 +205,9 @@
         },
         "sig_hint": "Escribe la URL desde donde se descargarán los sigpatches",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "Introduce la URL de tu tienda Ownfoil (ejemplo: http://192.168.1.2:8465)",
+            "user_hint": "Introduce tu nombre de usuario de Ownfoil (opcional)",
+            "pass_hint": "Introduce tu contraseña de Ownfoil (opcional)"
         },
         "update": {
             "title": "Actualización disponible",

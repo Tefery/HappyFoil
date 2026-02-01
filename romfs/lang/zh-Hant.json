@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "使用SD卡進行安裝",
+            "hdd": "使用 USB SSD/HDD 進行安裝",
             "net": "使用網路進行安裝",
             "shop": "使用 Ownfoil 安裝",
             "usb": "使用USB進行安裝",
@@ -23,6 +24,10 @@
                 "title": "沒有偵測到USB裝置",
                 "desc": "請用USB線將主機連接到電腦"
             }
+        },
+        "hdd": {
+            "title": "未偵測到 USB 裝置",
+            "notfound": "請連接 USB SSD 或硬碟後再進行安裝。"
         },
         "applet": {
             "title": "不支援Applet模式",
@@ -60,23 +65,24 @@
             "buttons1": " 選擇檔案     全選     安裝所選的檔案     取消"
         },
         "shop": {
-            "loading": "Loading shop list...",
-            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
-            "failed": "Failed to load shop",
+            "loading": "正在載入商店清單...",
+            "top_info": "選擇要從商店安裝的檔案，然後按下  鍵開始安裝！",
+            "failed": "載入商店失敗",
+            "unreachable": "無法連線到商店。",
             "encrypted_unsupported": "不支援加密的商店回應。請在 Ownfoil 設定中停用「加密商店」。",
-            "empty": "Shop has no files.",
-            "source_string": " from Ownfoil shop",
+            "empty": "商店中沒有任何檔案。",
+            "source_string": " 來自 Ownfoil 商店",
             "buttons_loading": " 取消",
-            "buttons": " 選擇檔案     全選     安裝所選的檔案     重新整理    / Section     取消",
-            "buttons_all": " 選擇檔案     全選     安裝所選的檔案     重新整理    / Section     Search     取消",
-            "search_hint": "Search all titles",
-            "update_prompt_title": "Install updates?",
-            "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
-            "motd_title": "Message of the day",
-            "buttons_installed": " Details     Refresh    / Section     Cancel",
-            "detail_type": "Type: ",
-            "detail_titleid": "Title ID: ",
-            "detail_version": "Version: "
+            "buttons": " 選擇檔案     全選     安裝所選的檔案     重新整理    / 分區     檢視     取消",
+            "buttons_all": " 選擇檔案     全選     安裝所選的檔案     重新整理    / 分區     搜尋     檢視     取消",
+            "search_hint": "搜尋所有標題",
+            "update_prompt_title": "安裝更新？",
+            "update_prompt_desc": "是否一併安裝所選標題可用的更新？ 已找到的更新數量：",
+            "motd_title": "每日訊息",
+            "buttons_installed": " 詳細資訊     重新整理    / 分區     取消",
+            "detail_type": "類型: ",
+            "detail_titleid": "標題 ID: ",
+            "detail_version": "版本: "
         },
         "sd": {
             "help": {
@@ -88,6 +94,18 @@
             "delete_info": " 安裝完成！是否將檔案從SD卡刪除？",
             "delete_info_multi": " 所選的檔案均安裝完成！是否將所選的檔案從SD卡刪除？",
             "delete_desc": "安裝完成後，不會再使用到原始檔案",
+            "buttons": " 選擇檔案     全選     安裝所選的檔案     說明     取消"
+        },
+        "hdd": {
+            "help": {
+                "title": "說明",
+                "desc": "連接 USB SSD 或硬碟，瀏覽並選取 NSP、NSZ、XCI 或 XCZ 檔案，然後按下  鍵開始安裝。"
+            },
+            "top_info": "選擇要安裝的檔案，然後按下  鍵開始安裝！",
+            "source_string": " 來自 USB 裝置",
+            "delete_info": " 已安裝完成！是否從 USB 裝置中刪除此檔案？",
+            "delete_info_multi": " 個檔案已成功安裝！是否從 USB 裝置中刪除這些檔案？",
+            "delete_desc": "安裝完成後便不再需要保留原始檔案",
             "buttons": " 選擇檔案     全選     安裝所選的檔案     說明     取消"
         },
         "usb": {
@@ -172,13 +190,13 @@
             "shop_url": "Ownfoil URL: ",
             "shop_user": "Ownfoil 使用者: ",
             "shop_pass": "Ownfoil 密碼: ",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "在 eShop 中隱藏已安裝的標題",
             "shop_hide_installed_section": "\u96b1\u85cf eShop \u7684\u300c\u5df2\u5b89\u88dd\u300d\u5340\u6bb5",
             "language": "介面語系： ",
             "check_update": "檢查CyberFoil的更新版本",
             "credits": "感謝名單",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "啟用音效",
+            "oled": "啟用 OLED 模式"
         },
         "nca_warn": {
             "title": "注意！",
@@ -187,9 +205,9 @@
         },
         "sig_hint": "請輸入下載簽名修補程式的URL網路位址",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "請輸入 Ownfoil 商店網址 (例如: http://192.168.1.2:8465)",
+            "user_hint": "請輸入 Ownfoil 使用者名稱 (選填)",
+            "pass_hint": "請輸入 Ownfoil 密碼 (選填)"
         },
         "update": {
             "title": "有可用的更新版本",

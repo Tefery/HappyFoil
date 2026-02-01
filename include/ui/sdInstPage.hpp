@@ -16,6 +16,22 @@ namespace inst::ui {
             void drawMenuItems(bool clearItems, std::filesystem::path ourPath);
             Image::Ref titleImage;
             TextBlock::Ref appVersionText;
+            TextBlock::Ref timeText;
+            TextBlock::Ref sysLabelText;
+            TextBlock::Ref sysFreeText;
+            TextBlock::Ref sdLabelText;
+            TextBlock::Ref sdFreeText;
+            Rectangle::Ref sysBarBack;
+            Rectangle::Ref sysBarFill;
+            Rectangle::Ref sdBarBack;
+            Rectangle::Ref sdBarFill;
+            Rectangle::Ref netIndicator;
+            Rectangle::Ref wifiBar1;
+            Rectangle::Ref wifiBar2;
+            Rectangle::Ref wifiBar3;
+            Rectangle::Ref batteryOutline;
+            Rectangle::Ref batteryFill;
+            Rectangle::Ref batteryCap;
         private:
             std::vector<std::filesystem::path> ourDirectories;
             std::vector<std::filesystem::path> ourFiles;

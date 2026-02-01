@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "通过 SD 卡安装",
+            "hdd": "通过 USB SSD/HDD 安装",
             "net": "通过局域网或网络安装",
             "shop": "通过 Ownfoil 安装",
             "usb": "通过 USB 安装",
@@ -23,6 +24,10 @@
                 "title": "未检测到 USB 连接",
                 "desc": "请通过 USB 连接一个兼容设备"
             }
+        },
+        "hdd": {
+            "title": "未检测到 USB 存储设备",
+            "notfound": "请连接 USB SSD 或移动硬盘后再安装。"
         },
         "applet": {
             "title": "不支持 Applet 模式",
@@ -60,23 +65,24 @@
             "buttons1": " 选择     全选     安装     取消"
         },
         "shop": {
-            "loading": "Loading shop list...",
-            "top_info": "Select what files you want to install from the shop, then press the Plus button!",
-            "failed": "Failed to load shop",
+            "loading": "正在加载商店列表...",
+            "top_info": "选择要从商店安装的文件，然后按  进行安装！",
+            "failed": "加载商店失败",
+            "unreachable": "无法连接到商店。",
             "encrypted_unsupported": "不支持加密的商店响应。请在 Ownfoil 设置中禁用“加密商店”。",
-            "empty": "Shop has no files.",
-            "source_string": " from Ownfoil shop",
+            "empty": "商店中没有可用文件。",
+            "source_string": " 来自 Ownfoil 商店",
             "buttons_loading": " 取消",
-            "buttons": " 选择     全选     安装     刷新    / Section     取消",
-            "buttons_all": " 选择     全选     安装     刷新    / Section     Search     取消",
-            "search_hint": "Search all titles",
-            "update_prompt_title": "Install updates?",
-            "update_prompt_desc": "Include available updates for selected titles? Updates found: ",
-            "motd_title": "Message of the day",
-            "buttons_installed": " Details     Refresh    / Section     Cancel",
-            "detail_type": "Type: ",
-            "detail_titleid": "Title ID: ",
-            "detail_version": "Version: "
+            "buttons": " 选择     全选     安装     刷新    / 分区     查看     取消",
+            "buttons_all": " 选择     全选     安装     刷新    / 分区     搜索     查看     取消",
+            "search_hint": "搜索所有标题",
+            "update_prompt_title": "安装更新？",
+            "update_prompt_desc": "是否为已选择标题一并安装可用更新？ 已发现更新数量：",
+            "motd_title": "每日消息",
+            "buttons_installed": " 详情     刷新    / 分区     取消",
+            "detail_type": "类型: ",
+            "detail_titleid": "标题 ID: ",
+            "detail_version": "版本: "
         },
         "sd": {
             "help": {
@@ -88,6 +94,18 @@
             "delete_info": " 安装完成！是否从 SD 卡中删除安装文件？",
             "delete_info_multi": " 文件安装成功！是否从 SD 卡中删除安装文件？",
             "delete_desc": "安装完成后不再需要安装文件",
+            "buttons": " 选择     全选     安装     帮助     取消"
+        },
+        "hdd": {
+            "help": {
+                "title": "帮助",
+                "desc": "连接 USB SSD 或移动硬盘，浏览并选择 NSP、NSZ、XCI 或 XCZ 文件，然后按  安装。"
+            },
+            "top_info": "选择要安装的文件，然后按  进行安装！",
+            "source_string": " 来自 USB 存储设备",
+            "delete_info": " 已安装！是否从 USB 存储设备中删除？",
+            "delete_info_multi": " 个文件安装成功！是否从 USB 存储设备中删除？",
+            "delete_desc": "安装完成后不再需要保留原始文件",
             "buttons": " 选择     全选     安装     帮助     取消"
         },
         "usb": {
@@ -172,13 +190,13 @@
             "shop_url": "Ownfoil 地址：",
             "shop_user": "Ownfoil 用户名：",
             "shop_pass": "Ownfoil 密码：",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "在 eShop 中隐藏已安装的标题",
             "shop_hide_installed_section": "\u9690\u85cf eShop \u7684\u201c\u5df2\u5b89\u88c5\u201d\u5206\u533a",
             "language": "语言：",
             "check_update": "检查 CyberFoil 更新",
             "credits": "致谢",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "启用声音",
+            "oled": "启用 OLED 模式"
         },
         "nca_warn": {
             "title": "警告！",
@@ -187,9 +205,9 @@
         },
         "sig_hint": "输入签名补丁源链接 (URL)",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "请输入 Ownfoil 商店地址 (例如: http://192.168.1.2:8465)",
+            "user_hint": "请输入 Ownfoil 用户名 (可选)",
+            "pass_hint": "请输入 Ownfoil 密码 (可选)"
         },
         "update": {
             "title": "有更新可用",

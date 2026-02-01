@@ -787,6 +787,22 @@ void CloseStreamInstall()
     inst::util::deinitInstallServices();
 }
 
+void CancelStreamInstall()
+{
+    {
+        std::lock_guard<std::mutex> lock(g_stream_mutex);
+        g_stream.reset();
+        g_stream_name.clear();
+    }
+
+    g_stream_active.store(false, std::memory_order_relaxed);
+    g_stream_complete.store(false, std::memory_order_relaxed);
+    g_stream_total.store(0, std::memory_order_relaxed);
+    g_stream_received.store(0, std::memory_order_relaxed);
+    g_stream_title_id.store(0, std::memory_order_relaxed);
+    inst::util::deinitInstallServices();
+}
+
 bool IsStreamInstallActive()
 {
     return g_stream_active.load(std::memory_order_relaxed);

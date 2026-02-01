@@ -12,6 +12,7 @@ namespace inst::ui {
             void netInstallMenuItem_Click();
             void shopInstallMenuItem_Click();
             void usbInstallMenuItem_Click();
+            void hddInstallMenuItem_Click();
             void mtpInstallMenuItem_Click();
             void sigPatchesMenuItem_Click();
             void settingsMenuItem_Click();
@@ -20,9 +21,29 @@ namespace inst::ui {
             Image::Ref awooImage;
             Image::Ref titleImage;
             TextBlock::Ref appVersionText;
+            TextBlock::Ref timeText;
+            TextBlock::Ref sysLabelText;
+            TextBlock::Ref sysFreeText;
+            TextBlock::Ref sdLabelText;
+            TextBlock::Ref sdFreeText;
+            Rectangle::Ref sysBarBack;
+            Rectangle::Ref sysBarFill;
+            Rectangle::Ref sdBarBack;
+            Rectangle::Ref sdBarFill;
+            Rectangle::Ref netIndicator;
+            Rectangle::Ref wifiBar1;
+            Rectangle::Ref wifiBar2;
+            Rectangle::Ref wifiBar3;
+            Rectangle::Ref batteryOutline;
+            Rectangle::Ref batteryFill;
+            Rectangle::Ref batteryCap;
         private:
             bool appletFinished;
             bool updateFinished;
+            bool touchActive = false;
+            bool touchMoved = false;
+            int touchStartX = 0;
+            int touchStartY = 0;
             TextBlock::Ref butText;
             Rectangle::Ref topRect;
             Rectangle::Ref botRect;
@@ -31,6 +52,7 @@ namespace inst::ui {
             pu::ui::elm::MenuItem::Ref netInstallMenuItem;
             pu::ui::elm::MenuItem::Ref shopInstallMenuItem;
             pu::ui::elm::MenuItem::Ref usbInstallMenuItem;
+            pu::ui::elm::MenuItem::Ref hddInstallMenuItem;
             pu::ui::elm::MenuItem::Ref mtpInstallMenuItem;
             pu::ui::elm::MenuItem::Ref sigPatchesMenuItem;
             pu::ui::elm::MenuItem::Ref settingsMenuItem;

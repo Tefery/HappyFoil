@@ -39,12 +39,16 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	cyberfoil
 BUILD		:=	build
-SOURCES		:=	source source/ui source/data source/install source/nx source/nx/ipc source/util external/libhaze/source
+SOURCES		:=	source source/ui source/data source/install source/nx source/nx/ipc source/util external/libhaze/source \
+			include/libusbhsfs/source include/libusbhsfs/source/fatfs include/libusbhsfs/source/ntfs-3g \
+			include/libusbhsfs/source/lwext4 include/libusbhsfs/source/sxos
 DATA		:=	data
-INCLUDES	:=	include include/ui include/data include/install include/nx include/nx/ipc include/util include/Plutonium/Plutonium/Output-switch/include external/libhaze/include
+INCLUDES	:=	include include/ui include/data include/install include/nx include/nx/ipc include/util \
+			include/libusbhsfs/include include/libusbhsfs/source \
+			include/Plutonium/Plutonium/Output-switch/include external/libhaze/include
 APP_TITLE	:=	CyberFoil
 APP_AUTHOR	:=	luketanti
-APP_VERSION	:=	1.3.8
+APP_VERSION	:=	1.3.9
 ICON		:=	romfs/images/icon.jpg
 ROMFS		:=	romfs
 
@@ -60,7 +64,7 @@ CFLAGS	+=	 `curl-config --cflags`
 CFLAGS	+=	 `sdl2-config --cflags`
 CFLAGS	+=	`$(PREFIX)pkg-config --cflags libturbojpeg freetype2`
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -Wall #-Werror -D__DEBUG__ -DNXLINK_DEBUG
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGPL_BUILD -Wall #-Werror -D__DEBUG__ -DNXLINK_DEBUG
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++20
 

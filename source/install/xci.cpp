@@ -51,7 +51,14 @@ namespace tin::install::xci
         if (header->magic != MAGIC_HFS0)
             THROW_FORMAT("hfs0 magic doesn't match at 0x%lx\n", hfs0Offset);
 
+        if (header->numFiles == 0 || header->numFiles > 0x10000)
+            THROW_FORMAT("Invalid XCI header: file count out of range (0x%x)\n", header->numFiles);
         size_t remainingHeaderSize = header->numFiles * sizeof(HFS0FileEntry) + header->stringTableSize;
+        const size_t maxHeaderSize = 2 * 1024 * 1024;
+        if (header->stringTableSize > (1 * 1024 * 1024))
+            THROW_FORMAT("Invalid XCI header: string table too large (0x%x)\n", header->stringTableSize);
+        if (remainingHeaderSize > maxHeaderSize)
+            THROW_FORMAT("Invalid XCI header: header too large (0x%lx)\n", remainingHeaderSize);
         m_headerBytes.resize(sizeof(HFS0BaseHeader) + remainingHeaderSize, 0);
         this->BufferData(m_headerBytes.data() + sizeof(HFS0BaseHeader), hfs0Offset + sizeof(HFS0BaseHeader), remainingHeaderSize);
 
@@ -79,7 +86,13 @@ namespace tin::install::xci
                 THROW_FORMAT("hfs0 magic doesn't match at 0x%lx\n", m_secureHeaderOffset);
 
             // Retrieve full header
+            if (this->GetSecureHeader()->numFiles == 0 || this->GetSecureHeader()->numFiles > 0x10000)
+                THROW_FORMAT("Invalid XCI secure header: file count out of range (0x%x)\n", this->GetSecureHeader()->numFiles);
             remainingHeaderSize = this->GetSecureHeader()->numFiles * sizeof(HFS0FileEntry) + this->GetSecureHeader()->stringTableSize;
+            if (this->GetSecureHeader()->stringTableSize > (1 * 1024 * 1024))
+                THROW_FORMAT("Invalid XCI secure header: string table too large (0x%x)\n", this->GetSecureHeader()->stringTableSize);
+            if (remainingHeaderSize > maxHeaderSize)
+                THROW_FORMAT("Invalid XCI secure header: header too large (0x%lx)\n", remainingHeaderSize);
             m_secureHeaderBytes.resize(sizeof(HFS0BaseHeader) + remainingHeaderSize, 0);
             this->BufferData(m_secureHeaderBytes.data() + sizeof(HFS0BaseHeader), m_secureHeaderOffset + sizeof(HFS0BaseHeader), remainingHeaderSize);
 

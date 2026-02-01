@@ -7,12 +7,17 @@
 #include <fstream>
 #include <sstream>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include "shopInstall.hpp"
 #include "install/http_nsp.hpp"
 #include "install/http_xci.hpp"
 #include "install/install.hpp"
 #include "install/install_nsp.hpp"
 #include "install/install_xci.hpp"
+#include "nx/nca_writer.h"
+#include "util/file_util.hpp"
+#include "util/title_util.hpp"
 #include "ui/MainApplication.hpp"
 #include "ui/instPage.hpp"
 #include "util/config.hpp"
@@ -64,8 +69,9 @@ namespace {
 
     std::vector<std::string> BuildTinfoilHeaders()
     {
+        std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
         return {
-            "Theme: Awoo-Installer",
+            themeHeader,
             "Uid: 0000000000000000",
             "Version: 0.0",
             "Revision: 0",
@@ -80,6 +86,22 @@ namespace {
         std::string ext = std::filesystem::path(name).extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         return ext == ".xci" || ext == ".xcz";
+    }
+
+    bool IsXciMagic(const std::string& url)
+    {
+        try {
+            tin::network::HTTPDownload download(url);
+            u32 magic = 0;
+            download.BufferDataRange(&magic, 0xF000, sizeof(magic), nullptr);
+            if (magic == 0x30534648)
+                return true;
+            magic = 0;
+            download.BufferDataRange(&magic, 0x10000, sizeof(magic), nullptr);
+            return magic == 0x30534648;
+        } catch (...) {
+            return false;
+        }
     }
 
     bool ContainsHtml(const std::string& body)
@@ -111,8 +133,12 @@ namespace {
         if (!item.hasIconUrl)
             return "";
         std::string cacheDir = inst::config::appDir + "/shop_icons";
-        if (!std::filesystem::exists(cacheDir))
-            std::filesystem::create_directory(cacheDir);
+        std::error_code ec;
+        if (!std::filesystem::exists(cacheDir, ec)) {
+            std::filesystem::create_directory(cacheDir, ec);
+            if (ec)
+                return "";
+        }
 
         std::string urlPath = item.iconUrl;
         std::string ext = ".jpg";
@@ -200,6 +226,12 @@ namespace {
         if (!out)
             return;
         out << body;
+    }
+
+    std::string GetShopPrefetchMarker(const std::string& baseUrl)
+    {
+        std::size_t hash = std::hash<std::string>{}(baseUrl);
+        return inst::config::appDir + "/shop_icons_prefetch_" + std::to_string(hash) + ".done";
     }
 
     bool TryParseTitleId(const nlohmann::json& entry, std::uint64_t& out);
@@ -305,8 +337,18 @@ namespace {
         std::vector<shopInstStuff::ShopSection> sections;
         try {
             nlohmann::json shop = nlohmann::json::parse(body);
+            if (shop.contains("error") && shop["error"].is_string()) {
+                error = "Shop login failed. " + shop["error"].get<std::string>();
+                return sections;
+            }
             if (!shop.contains("sections") || !shop["sections"].is_array()) {
-                error = "Shop response missing sections.";
+                std::string lower = body;
+                std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
+                if (lower.find("unauthorized") != std::string::npos || lower.find("login") != std::string::npos) {
+                    error = "Shop login failed. Check username/password or enable public shop.";
+                } else {
+                    error = "Shop response missing sections.";
+                }
                 return sections;
             }
 
@@ -562,19 +604,6 @@ namespace shopInstStuff {
             return sections;
         }
 
-        if (allowCache) {
-            std::string cachedBody;
-            bool fresh = false;
-            if (LoadShopCache(baseUrl, cachedBody, fresh) && fresh) {
-                std::string cacheError;
-                sections = ParseShopSectionsBody(cachedBody, baseUrl, cacheError);
-                if (!sections.empty()) {
-                    error.clear();
-                    return sections;
-                }
-            }
-        }
-
         std::string sectionsUrl = baseUrl + "/api/shop/sections";
         FetchResult fetch = FetchShopResponse(sectionsUrl, user, pass);
         if (fetch.responseCode == 404) {
@@ -586,6 +615,10 @@ namespace shopInstStuff {
         }
 
         if (!ValidateShopResponse(fetch, error)) {
+            if (!fetch.error.empty()) {
+                error = "inst.shop.unreachable"_lang;
+                return sections;
+            }
             if (allowCache) {
                 std::string cachedBody;
                 bool fresh = false;
@@ -605,6 +638,342 @@ namespace shopInstStuff {
         if (!sections.empty())
             SaveShopCache(baseUrl, fetch.body);
         return sections;
+    }
+
+    void ResetShopIconCache(const std::string& shopUrl)
+    {
+        std::string baseUrl = NormalizeShopUrl(shopUrl);
+        if (baseUrl.empty())
+            return;
+        std::string marker = GetShopPrefetchMarker(baseUrl);
+        std::error_code ec;
+        if (std::filesystem::exists(marker, ec))
+            std::filesystem::remove(marker, ec);
+        std::string cacheDir = inst::config::appDir + "/shop_icons";
+        if (std::filesystem::exists(cacheDir, ec)) {
+            for (const auto& entry : std::filesystem::directory_iterator(cacheDir, ec)) {
+                if (entry.is_regular_file())
+                    std::filesystem::remove(entry.path(), ec);
+            }
+        }
+    }
+
+    namespace {
+        class StreamInstallHelper final : public tin::install::Install {
+        public:
+            StreamInstallHelper(NcmStorageId dest_storage, bool ignore_req)
+                : Install(dest_storage, ignore_req) {}
+
+            void AddContentMeta(const nx::ncm::ContentMeta& meta, const NcmContentInfo& info) {
+                m_contentMeta.push_back(meta);
+                m_cnmt_infos.push_back(info);
+            }
+
+            void CommitLatest() {
+                if (m_contentMeta.empty()) return;
+                const size_t idx = m_contentMeta.size() - 1;
+                tin::data::ByteBuffer install_buf;
+                m_contentMeta[idx].GetInstallContentMeta(install_buf, m_cnmt_infos[idx], m_ignoreReqFirmVersion);
+                InstallContentMetaRecords(install_buf, idx);
+                InstallApplicationRecord(idx);
+            }
+
+            void CommitAll() {
+                for (size_t i = 0; i < m_contentMeta.size(); i++) {
+                    tin::data::ByteBuffer install_buf;
+                    m_contentMeta[i].GetInstallContentMeta(install_buf, m_cnmt_infos[i], m_ignoreReqFirmVersion);
+                    InstallContentMetaRecords(install_buf, i);
+                    InstallApplicationRecord(i);
+                }
+            }
+
+        private:
+            std::vector<NcmContentInfo> m_cnmt_infos;
+            std::vector<std::tuple<nx::ncm::ContentMeta, NcmContentInfo>> ReadCNMT() override { return {}; }
+            void InstallTicketCert() override {}
+            void InstallNCA(const NcmContentId& /*ncaId*/) override {}
+        };
+
+        class HttpStreamSource {
+        public:
+            explicit HttpStreamSource(tin::network::HTTPDownload& download) : m_download(download) {}
+
+            Result Read(void* buf, s64 off, s64 size, u64* bytes_read) {
+                if (off < 0 || size <= 0) return MAKERESULT(Module_Libnx, LibnxError_BadInput);
+                const size_t req_size = static_cast<size_t>(size);
+                const size_t req_off = static_cast<size_t>(off);
+
+                if (!m_cache.empty() && req_off >= m_cache_start && (req_off + req_size) <= m_cache_end) {
+                    const size_t rel = req_off - m_cache_start;
+                    std::memcpy(buf, m_cache.data() + rel, req_size);
+                    *bytes_read = static_cast<u64>(size);
+                    return 0;
+                }
+
+                const size_t fetch_size = std::max(req_size, kReadAheadSize);
+                m_cache.resize(fetch_size);
+                m_download.BufferDataRange(m_cache.data(), req_off, fetch_size, nullptr);
+                m_cache_start = req_off;
+                m_cache_end = req_off + fetch_size;
+
+                std::memcpy(buf, m_cache.data(), req_size);
+                *bytes_read = static_cast<u64>(size);
+                return 0;
+            }
+
+        private:
+            static constexpr size_t kReadAheadSize = 16 * 1024 * 1024;
+            tin::network::HTTPDownload& m_download;
+            std::vector<std::uint8_t> m_cache;
+            size_t m_cache_start = 0;
+            size_t m_cache_end = 0;
+        };
+
+        struct StreamHfs0Header {
+            u32 magic;
+            u32 total_files;
+            u32 string_table_size;
+            u32 padding;
+        };
+
+        struct StreamHfs0FileTableEntry {
+            u64 data_offset;
+            u64 data_size;
+            u32 name_offset;
+            u32 hash_size;
+            u64 padding;
+            u8 hash[0x20];
+        };
+
+        struct StreamHfs0 {
+            StreamHfs0Header header{};
+            std::vector<StreamHfs0FileTableEntry> file_table{};
+            std::vector<std::string> string_table{};
+            s64 data_offset{};
+        };
+
+        struct StreamCollectionEntry {
+            std::string name;
+            u64 offset{};
+            u64 size{};
+        };
+
+        static bool ReadHfs0Partition(HttpStreamSource& source, s64 off, StreamHfs0& out) {
+            u64 bytes_read = 0;
+            if (R_FAILED(source.Read(&out.header, off, sizeof(out.header), &bytes_read))) return false;
+            if (out.header.magic != 0x30534648) return false;
+            if (out.header.total_files == 0 || out.header.total_files > 0x4000) return false;
+            if (out.header.string_table_size > (256 * 1024)) return false;
+            off += bytes_read;
+
+            out.file_table.resize(out.header.total_files);
+            const auto file_table_size = static_cast<s64>(out.file_table.size() * sizeof(StreamHfs0FileTableEntry));
+            if (file_table_size > (4 * 1024 * 1024)) return false;
+            if (R_FAILED(source.Read(out.file_table.data(), off, file_table_size, &bytes_read))) return false;
+            off += bytes_read;
+
+            std::vector<char> string_table(out.header.string_table_size);
+            if (R_FAILED(source.Read(string_table.data(), off, string_table.size(), &bytes_read))) return false;
+            off += bytes_read;
+
+            out.string_table.clear();
+            out.string_table.reserve(out.header.total_files);
+            for (u32 i = 0; i < out.header.total_files; i++) {
+                out.string_table.emplace_back(string_table.data() + out.file_table[i].name_offset);
+            }
+
+            out.data_offset = off;
+            return true;
+        }
+
+        static bool GetXciCollections(HttpStreamSource& source, std::vector<StreamCollectionEntry>& out) {
+            StreamHfs0 root{};
+            s64 root_offset = 0xF000;
+            if (!ReadHfs0Partition(source, root_offset, root)) {
+                root_offset = 0x10000;
+                if (!ReadHfs0Partition(source, root_offset, root)) {
+                    return false;
+                }
+            }
+
+            for (u32 i = 0; i < root.header.total_files; i++) {
+                if (root.string_table[i] != "secure") continue;
+
+                StreamHfs0 secure{};
+                const auto secure_offset = root.data_offset + static_cast<s64>(root.file_table[i].data_offset);
+                if (!ReadHfs0Partition(source, secure_offset, secure)) return false;
+
+                out.clear();
+                out.reserve(secure.header.total_files);
+                for (u32 j = 0; j < secure.header.total_files; j++) {
+                    StreamCollectionEntry entry;
+                    entry.name = secure.string_table[j];
+                    entry.offset = static_cast<u64>(secure.data_offset + static_cast<s64>(secure.file_table[j].data_offset));
+                    entry.size = secure.file_table[j].data_size;
+                    out.emplace_back(std::move(entry));
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        static bool InstallXciHttpStream(const std::string& url, NcmStorageId dest_storage) {
+            tin::network::HTTPDownload download(url);
+            HttpStreamSource source(download);
+
+            std::vector<StreamCollectionEntry> collections;
+            if (!GetXciCollections(source, collections)) return false;
+
+            u64 totalBytes = 0;
+            for (const auto& c : collections) {
+                totalBytes += c.size;
+            }
+            u64 processedBytes = 0;
+            u64 lastTick = armGetSystemTick();
+            u64 lastProcessed = 0;
+            const u64 freq = armGetSystemTickFreq();
+            inst::ui::instPage::setInstInfoText("inst.info_page.preparing"_lang);
+            inst::ui::instPage::setInstBarPerc(0);
+
+            std::sort(collections.begin(), collections.end(), [](const auto& a, const auto& b) {
+                return a.offset < b.offset;
+            });
+
+            struct EntryState {
+                std::string name;
+                NcmContentId nca_id{};
+                std::uint64_t size = 0;
+                std::uint64_t written = 0;
+                bool started = false;
+                bool complete = false;
+                bool is_nca = false;
+                bool is_cnmt = false;
+                std::shared_ptr<nx::ncm::ContentStorage> storage;
+                std::unique_ptr<NcaWriter> nca_writer;
+                std::vector<std::uint8_t> ticket_buf;
+                std::vector<std::uint8_t> cert_buf;
+            };
+
+            auto ensureStarted = [&](EntryState& entry) {
+                if (entry.started) return true;
+                if (!entry.is_nca) {
+                    entry.started = true;
+                    return true;
+                }
+                entry.storage = std::make_shared<nx::ncm::ContentStorage>(dest_storage);
+                try { entry.storage->DeletePlaceholder(*(NcmPlaceHolderId*)&entry.nca_id); } catch (...) {}
+                entry.nca_writer = std::make_unique<NcaWriter>(entry.nca_id, entry.storage);
+                entry.started = true;
+                return true;
+            };
+
+            StreamInstallHelper helper(dest_storage, inst::config::ignoreReqVers);
+
+            std::unordered_map<std::string, EntryState> entries;
+            entries.reserve(collections.size());
+
+            std::vector<std::uint8_t> buf(0x800000);
+            for (const auto& collection : collections) {
+                EntryState entry;
+                entry.name = collection.name;
+                entry.size = collection.size;
+                entry.is_nca = entry.name.find(".nca") != std::string::npos || entry.name.find(".ncz") != std::string::npos;
+                entry.is_cnmt = entry.name.find(".cnmt.nca") != std::string::npos || entry.name.find(".cnmt.ncz") != std::string::npos;
+                if (entry.is_nca && entry.name.size() >= 32) {
+                    entry.nca_id = tin::util::GetNcaIdFromString(entry.name.substr(0, 32));
+                }
+
+                if (!ensureStarted(entry)) return false;
+
+                u64 remaining = collection.size;
+                u64 offset = collection.offset;
+                while (remaining > 0) {
+                    const auto chunk = static_cast<size_t>(std::min<u64>(remaining, buf.size()));
+                    u64 bytes_read = 0;
+                    if (R_FAILED(source.Read(buf.data(), static_cast<s64>(offset), static_cast<s64>(chunk), &bytes_read))) {
+                        return false;
+                    }
+                    if (bytes_read == 0) return false;
+
+                    if (entry.name.find(".tik") != std::string::npos) {
+                        entry.ticket_buf.insert(entry.ticket_buf.end(), buf.data(), buf.data() + bytes_read);
+                        entry.written += bytes_read;
+                        if (entry.written >= entry.size) entry.complete = true;
+                    } else if (entry.name.find(".cert") != std::string::npos) {
+                        entry.cert_buf.insert(entry.cert_buf.end(), buf.data(), buf.data() + bytes_read);
+                        entry.written += bytes_read;
+                        if (entry.written >= entry.size) entry.complete = true;
+                    } else if (entry.is_nca && entry.nca_writer) {
+                        entry.nca_writer->write(buf.data(), bytes_read);
+                        entry.written += bytes_read;
+                        if (entry.written >= entry.size) {
+                            entry.nca_writer->close();
+                            try {
+                                entry.storage->Register(*(NcmPlaceHolderId*)&entry.nca_id, entry.nca_id);
+                                entry.storage->DeletePlaceholder(*(NcmPlaceHolderId*)&entry.nca_id);
+                            } catch (...) {}
+                            entry.complete = true;
+                            if (entry.is_cnmt) {
+                                try {
+                                    std::string cnmt_path = entry.storage->GetPath(entry.nca_id);
+                                    nx::ncm::ContentMeta meta = tin::util::GetContentMetaFromNCA(cnmt_path);
+                                    NcmContentInfo cnmt_info{};
+                                    cnmt_info.content_id = entry.nca_id;
+                                    ncmU64ToContentInfoSize(entry.size & 0xFFFFFFFFFFFF, &cnmt_info);
+                                    cnmt_info.content_type = NcmContentType_Meta;
+                                    helper.AddContentMeta(meta, cnmt_info);
+                                    helper.CommitLatest();
+                                } catch (...) {}
+                            }
+                        }
+                    }
+
+                    offset += bytes_read;
+                    remaining -= bytes_read;
+                    processedBytes += bytes_read;
+
+                    const u64 now = armGetSystemTick();
+                    if (now - lastTick >= (freq / 2)) {
+                        double speed = 0.0;
+                        if (processedBytes > lastProcessed) {
+                            double deltaMb = (processedBytes - lastProcessed) / 1000000.0;
+                            double deltaSec = (double)(now - lastTick) / (double)freq;
+                            if (deltaSec > 0.0)
+                                speed = deltaMb / deltaSec;
+                        }
+                        lastTick = now;
+                        lastProcessed = processedBytes;
+
+                        if (totalBytes > 0) {
+                            int progress = (int)((double)processedBytes / (double)totalBytes * 100.0);
+                            inst::ui::instPage::setInstBarPerc(progress);
+                            std::string speedStr = std::to_string(speed);
+                            if (speedStr.size() > 4)
+                                speedStr = speedStr.substr(0, speedStr.size() - 4);
+                            inst::ui::instPage::setInstInfoText("inst.info_page.downloading"_lang + speedStr + "MB/s");
+                        }
+                    }
+                }
+
+                entries.emplace(entry.name, std::move(entry));
+            }
+
+            for (auto& [name, entry] : entries) {
+                if (entry.name.find(".tik") != std::string::npos) {
+                    const auto base = entry.name.substr(0, entry.name.size() - 4);
+                    auto it = entries.find(base + ".cert");
+                    if (it != entries.end() && !entry.ticket_buf.empty() && !it->second.cert_buf.empty()) {
+                        ASSERT_OK(esImportTicket(entry.ticket_buf.data(), entry.ticket_buf.size(), it->second.cert_buf.data(), it->second.cert_buf.size()),
+                            "Failed to import ticket");
+                    }
+                }
+            }
+
+            helper.CommitAll();
+            inst::ui::instPage::setInstBarPerc(100);
+            return true;
+        }
     }
 
     std::string FetchShopMotd(const std::string& shopUrl, const std::string& user, const std::string& pass)
@@ -665,10 +1034,13 @@ namespace shopInstStuff {
                 UpdateInstallIcon(items[i]);
                 inst::ui::instPage::setTopInstInfoText("inst.info_page.top_info0"_lang + currentName + sourceLabel);
                 std::unique_ptr<tin::install::Install> installTask;
-
-                if (IsXciExtension(items[i].name)) {
-                    auto httpXCI = std::make_shared<tin::install::xci::HTTPXCI>(items[i].url);
-                    installTask = std::make_unique<tin::install::xci::XCIInstallTask>(destStorageId, inst::config::ignoreReqVers, httpXCI);
+                bool isXci = IsXciExtension(items[i].name) || IsXciExtension(items[i].url) || IsXciMagic(items[i].url);
+                if (isXci) {
+                    inst::ui::instPage::setInstInfoText("inst.info_page.preparing"_lang);
+                    if (!InstallXciHttpStream(items[i].url, destStorageId)) {
+                        THROW_FORMAT("Failed to install XCI from shop.");
+                    }
+                    continue;
                 } else {
                     auto httpNSP = std::make_shared<tin::install::nsp::HTTPNSP>(items[i].url);
                     installTask = std::make_unique<tin::install::nsp::NSPInstall>(destStorageId, inst::config::ignoreReqVers, httpNSP);

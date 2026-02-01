@@ -2,6 +2,7 @@
     "main": {
         "menu": {
             "sd": "Von SD-Karte installieren",
+            "hdd": "Von USB-SSD/Festplatte installieren",
             "net": "Über LAN oder Internet installieren",
             "shop": "Installieren vom Ownfoil-Shop",
             "usb": "Über USB installieren",
@@ -23,6 +24,10 @@
                 "title": "Keine USB-Verbindung erkannt",
                 "desc": "Verbinde die Switch für USB-Installationen mit einem kompatiblen Gerät"
             }
+        },
+        "hdd": {
+            "title": "Kein USB-Laufwerk erkannt",
+            "notfound": "Schließe eine USB-SSD oder Festplatte an, um von ihr zu installieren."
         },
         "applet": {
             "title": "Applet-Modus wird nicht unterstützt",
@@ -63,12 +68,13 @@
             "loading": "Shop-Liste wird geladen...",
             "top_info": "Wähle aus, welche Dateien du aus dem Shop installieren möchtest, und drücke dann die Plus-Taste!",
             "failed": "Shop konnte nicht geladen werden",
+            "unreachable": "Shop nicht erreichbar.",
             "encrypted_unsupported": "Verschlüsselte Shop-Antworten werden nicht unterstützt. Deaktiviere „Shop verschlüsseln“ in den Ownfoil-Einstellungen.",
             "empty": "Der Shop enthält keine Dateien.",
             "source_string": " aus dem Ownfoil-Shop",
             "buttons_loading": " Abbrechen",
-            "buttons": " Datei auswählen     Alle auswählen     Datei(en) installieren     Aktualisieren    / Abschnitt     Abbrechen",
-            "buttons_all": " Datei auswählen     Alle auswählen     Datei(en) installieren     Aktualisieren    / Abschnitt     Suche     Abbrechen",
+            "buttons": " Datei auswählen     Alle auswählen     Datei(en) installieren     Aktualisieren    / Abschnitt     View     Abbrechen",
+            "buttons_all": " Datei auswählen     Alle auswählen     Datei(en) installieren     Aktualisieren    / Abschnitt     Suche     View     Abbrechen",
             "search_hint": "Alle Titel durchsuchen",
             "update_prompt_title": "Updates installieren?",
             "update_prompt_desc": "Verfügbare Updates für ausgewählte Titel einbeziehen? Gefundene Updates: ",
@@ -89,6 +95,18 @@
             "delete_info_multi": " Dateien erfolgreich installiert! Sollen diese von der SD-Karte gelöscht werden?",
             "delete_desc": "Die originalen Dateien werden nach der Installation nicht mehr benötigt",
             "buttons": " Datei auswählen     Alle auswählen     Datei(en) installieren     Abbrechen"
+        },
+        "hdd": {
+            "help": {
+                "title": "Hilfe",
+                "desc": "Schließe eine USB-SSD oder Festplatte an, suche nach NSP-, NSZ-, XCI-\noder XCZ-Dateien, wähle sie aus und drücke dann die Plus-Taste."
+            },
+            "top_info": "Wähle Dateien zur Installation vom USB-Laufwerk aus und drücke dann die Plus-Taste!",
+            "source_string": " vom USB-Laufwerk",
+            "delete_info": " installiert! Von dem USB-Laufwerk löschen?",
+            "delete_info_multi": " Dateien erfolgreich installiert! Von dem USB-Laufwerk löschen?",
+            "delete_desc": "Die Originaldateien werden nach der Installation nicht mehr benötigt",
+            "buttons": " Datei auswählen     Alle auswählen     Datei(en) installieren     Hilfe     Abbrechen"
         },
         "usb": {
             "help": {
@@ -172,13 +190,13 @@
             "shop_url": "Ownfoil Shop-URL: ",
             "shop_user": "Ownfoil Benutzername: ",
             "shop_pass": "Ownfoil Passwort: ",
-            "shop_hide_installed": "Hide installed titles in eShop",
+            "shop_hide_installed": "Installierte Titel im eShop ausblenden",
             "shop_hide_installed_section": "Installiert-Abschnitt im eShop ausblenden",
             "language": "Sprache: ",
             "check_update": "Suche nach Updates für CyberFoil",
             "credits": "Anerkennung",
-            "sound": "Enable sounds",
-            "oled": "Enable OLED mode"
+            "sound": "Töne aktivieren",
+            "oled": "OLED-Modus aktivieren"
         },
         "nca_warn": {
             "title": "Warnung!",
@@ -187,9 +205,9 @@
         },
         "sig_hint": "Gib eine URL an, um Signatur Patches zu beziehen",
         "shop": {
-            "url_hint": "Enter your Ownfoil shop URL (example: http://192.168.1.2:8465)",
-            "user_hint": "Enter your Ownfoil username (optional)",
-            "pass_hint": "Enter your Ownfoil password (optional)"
+            "url_hint": "Gib die URL deines Ownfoil-Shops ein (Beispiel: http://192.168.1.2:8465)",
+            "user_hint": "Gib deinen Ownfoil-Benutzernamen ein (optional)",
+            "pass_hint": "Gib dein Ownfoil-Passwort ein (optional)"
         },
         "update": {
             "title": "Neue Version verfügbar",
