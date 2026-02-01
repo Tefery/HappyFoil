@@ -9,6 +9,7 @@ namespace inst::mtp {
 bool StartStreamInstall(const std::string& name, std::uint64_t size, int storage_choice);
 bool WriteStreamInstall(const void* buf, size_t size, std::uint64_t offset);
 void CloseStreamInstall();
+void CancelStreamInstall();
 
 bool IsStreamInstallActive();
 bool ConsumeStreamInstallComplete();

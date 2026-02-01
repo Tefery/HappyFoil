@@ -345,9 +345,15 @@ void StopInstallServer()
 {
     std::lock_guard<std::mutex> lock(g_state_mutex);
     if (!g_running) return;
+    inst::mtp::CancelStreamInstall();
     haze::Exit();
     g_entries.clear();
     g_shared.enabled = false;
+    g_shared.in_progress = false;
+    g_shared.current_file.clear();
+    if (R_SUCCEEDED(usbDsDisable())) {
+        svcSleepThread(50'000'000);
+    }
     if (g_ncm_ready) {
         ncmExit();
         g_ncm_ready = false;
