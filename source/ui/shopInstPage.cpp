@@ -184,7 +184,7 @@ namespace inst::ui {
             this->menu->SetOnFocusColor(COLOR("#00000033"));
             this->menu->SetScrollbarColor(COLOR("#17090980"));
         }
-        this->infoImage = Image::New(453, 292, "romfs:/images/icons/lan-connection-waiting.png");
+        this->infoImage = Image::New(453, 292, "romfs:/images/icons/eshop-connection-waiting.png");
         this->previewImage = Image::New(900, 230, "romfs:/images/icons/title-placeholder.png");
         this->previewImage->SetWidth(320);
         this->previewImage->SetHeight(320);
