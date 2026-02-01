@@ -6,7 +6,7 @@
 
 ## Buy me a Coffee at kofi -> https://ko-fi.com/cyberhazard
 
-DEMO Video: https://youtu.be/4Kl0n9vnVP8
+DEMO Video: [https://youtu.be/4Kl0n9vnVP8](https://youtu.be/NEwC8vgUZLI)
 
 A NSP, NSZ, XCI, & XCZ Installer with basic eShop support for Nintendo Switch
 
@@ -100,3 +100,4 @@ Screenshots:
 - The also kind folks at the RetroNX Discuck (of no direct involvement)
 - [namako8982](https://www.pixiv.net/member.php?id=14235616) for the Momiji art
 - TheXzoron for being a baka
+
