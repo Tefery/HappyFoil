@@ -3,7 +3,8 @@ name: Build CyberFoil (release)
 on:
   push:
     tags:
-      - "v*"
+      - "*.*.*"
+      - "v*.*.*"
 
 permissions:
   contents: write
@@ -12,10 +13,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Suggestion #2: job-level container (all steps run inside devkitPro image)
     container:
       image: devkitpro/devkita64:latest
-      # options: --user 1001:1001  # optional (uncomment if you want non-root output ownership)
 
     steps:
       - name: Checkout (with submodules)
@@ -24,6 +23,35 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Verify tag matches APP_VERSION in Makefile
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_REF_NAME}"
+          TAG="${TAG#v}"   # allow tags like v1.3.9 as well
+
+          if [ ! -f Makefile ]; then
+            echo "ERROR: Makefile not found at repo root"
+            exit 1
+          fi
+
+          # Extract APP_VERSION from Makefile line like: APP_VERSION := 1.3.9
+          APP_VERSION="$(sed -n 's/^APP_VERSION[[:space:]]*:?=[[:space:]]*//p' Makefile | head -n 1 | tr -d '\r')"
+
+          if [ -z "$APP_VERSION" ]; then
+            echo "ERROR: Could not read APP_VERSION from Makefile"
+            exit 1
+          fi
+
+          echo "Tag version:      $TAG"
+          echo "Makefile version: $APP_VERSION"
+
+          if [ "$TAG" != "$APP_VERSION" ]; then
+            echo "ERROR: Tag ($TAG) does not match APP_VERSION ($APP_VERSION)."
+            echo "Fix: update APP_VERSION in Makefile or tag the correct version."
+            exit 1
+          fi
+
       - name: Build + verify expected NRO name/location
         run: |
           set -euo pipefail
@@ -31,8 +59,7 @@ jobs:
           dkp-pacman -S --noconfirm --needed switch-ntfs-3g switch-lwext4
           make -j"$(nproc)"
 
-          # Suggestion #1 (adapted to your Makefile):
-          # Your Makefile outputs ./cyberfoil.nro (TARGET := cyberfoil), so verify that exact file.
+          # Your Makefile outputs ./cyberfoil.nro (TARGET := cyberfoil)
           if [ ! -f "./cyberfoil.nro" ]; then
             echo "ERROR: Expected ./cyberfoil.nro not found"
             echo "Debug: any .nro files present?"
@@ -40,7 +67,7 @@ jobs:
             exit 1
           fi
 
-          # Optional extra safety: ensure there aren't multiple .nro files
+          # Ensure there aren't multiple .nro files
           COUNT="$(find . -type f -name '*.nro' | wc -l | tr -d ' ')"
           if [ "$COUNT" -ne 1 ]; then
             echo "ERROR: Expected exactly 1 .nro file, found $COUNT"
@@ -56,7 +83,7 @@ jobs:
           mkdir -p dist/switch/cyberfoil
           cp -v ./cyberfoil.nro dist/switch/cyberfoil/cyberfoil.nro
 
-          # Use Python to create the zip (avoids needing the 'zip' binary in the container)
+          # Create the zip using Python (no dependency on 'zip' being installed)
           python3 - <<'PY'
           import os, zipfile
           zip_name = "cyberfoil.zip"
@@ -75,8 +102,7 @@ jobs:
           python3 - <<'PY'
           import zipfile
           with zipfile.ZipFile("cyberfoil.zip") as z:
-              for n in z.namelist():
-                  print(n)
+              print("\n".join(z.namelist()))
           PY
 
       - name: Upload artifact
