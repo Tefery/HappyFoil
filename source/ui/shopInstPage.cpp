@@ -1258,7 +1258,20 @@ namespace inst::ui {
     }
 
     void shopInstPage::startInstall() {
+        std::vector<shopInstStuff::ShopItem> autoAddedItems;
         if (!this->selectedItems.empty()) {
+            auto isAlreadySelected = [&](const shopInstStuff::ShopItem& candidate) {
+                return std::any_of(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& entry) {
+                    if (!candidate.url.empty() && !entry.url.empty())
+                        return entry.url == candidate.url;
+                    if (candidate.hasTitleId && entry.hasTitleId)
+                        return entry.titleId == candidate.titleId;
+                    if (candidate.hasAppId && entry.hasAppId)
+                        return entry.appId == candidate.appId;
+                    return false;
+                });
+            };
+
             std::vector<shopInstStuff::ShopItem> updatesToAdd;
             std::unordered_map<std::uint64_t, shopInstStuff::ShopItem> latestUpdates;
             for (const auto& update : this->availableUpdates) {
@@ -1281,10 +1294,7 @@ namespace inst::ui {
                 auto updateIt = latestUpdates.find(baseTitleId);
                 if (updateIt == latestUpdates.end())
                     continue;
-                bool alreadySelected = std::any_of(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& entry) {
-                    return entry.url == updateIt->second.url;
-                });
-                if (!alreadySelected && !updateIt->second.url.empty())
+                if (!isAlreadySelected(updateIt->second) && !updateIt->second.url.empty())
                     updatesToAdd.push_back(updateIt->second);
             }
 
@@ -1293,8 +1303,65 @@ namespace inst::ui {
                     "inst.shop.update_prompt_desc"_lang + std::to_string(updatesToAdd.size()),
                     {"common.yes"_lang, "common.no"_lang}, false);
                 if (res == 0) {
-                    for (const auto& update : updatesToAdd)
+                    for (const auto& update : updatesToAdd) {
                         this->selectedItems.push_back(update);
+                        autoAddedItems.push_back(update);
+                    }
+                }
+            }
+
+            std::unordered_map<std::uint64_t, bool> selectedBaseTitleIds;
+            for (const auto& item : this->selectedItems) {
+                if (!IsBaseItem(item))
+                    continue;
+                std::uint64_t baseTitleId = 0;
+                if (!DeriveBaseTitleId(item, baseTitleId))
+                    continue;
+                selectedBaseTitleIds[baseTitleId] = true;
+            }
+
+            if (!selectedBaseTitleIds.empty()) {
+                std::vector<shopInstStuff::ShopItem> dlcToAdd;
+                std::unordered_map<std::string, bool> seenDlcKeys;
+
+                for (const auto& section : this->shopSections) {
+                    for (const auto& item : section.items) {
+                        if (item.appType != NcmContentMetaType_AddOnContent)
+                            continue;
+                        if (item.url.empty())
+                            continue;
+                        std::uint64_t baseTitleId = 0;
+                        if (!DeriveBaseTitleId(item, baseTitleId))
+                            continue;
+                        if (selectedBaseTitleIds.find(baseTitleId) == selectedBaseTitleIds.end())
+                            continue;
+                        if (isAlreadySelected(item))
+                            continue;
+
+                        std::string dedupeKey = item.url;
+                        if (dedupeKey.empty() && item.hasTitleId)
+                            dedupeKey = std::to_string(item.titleId);
+                        if (dedupeKey.empty() && item.hasAppId)
+                            dedupeKey = item.appId;
+                        if (dedupeKey.empty())
+                            continue;
+                        if (seenDlcKeys.find(dedupeKey) != seenDlcKeys.end())
+                            continue;
+                        seenDlcKeys[dedupeKey] = true;
+                        dlcToAdd.push_back(item);
+                    }
+                }
+
+                if (!dlcToAdd.empty()) {
+                    int res = mainApp->CreateShowDialog("inst.shop.dlc_prompt_title"_lang,
+                        "inst.shop.dlc_prompt_desc"_lang + std::to_string(dlcToAdd.size()),
+                        {"common.yes"_lang, "common.no"_lang}, false);
+                    if (res == 0) {
+                        for (const auto& dlc : dlcToAdd) {
+                            this->selectedItems.push_back(dlc);
+                            autoAddedItems.push_back(dlc);
+                        }
+                    }
                 }
             }
         }
@@ -1306,8 +1373,33 @@ namespace inst::ui {
         } else {
             dialogResult = mainApp->CreateShowDialog("inst.target.desc00"_lang + std::to_string(this->selectedItems.size()) + "inst.target.desc01"_lang, "common.cancel_desc"_lang, {"inst.target.opt0"_lang, "inst.target.opt1"_lang}, false);
         }
-        if (dialogResult == -1)
+        if (dialogResult == -1) {
+            if (!autoAddedItems.empty()) {
+                auto matchesItem = [](const shopInstStuff::ShopItem& lhs, const shopInstStuff::ShopItem& rhs) {
+                    if (!lhs.url.empty() && !rhs.url.empty())
+                        return lhs.url == rhs.url;
+                    if (lhs.hasTitleId && rhs.hasTitleId)
+                        return lhs.titleId == rhs.titleId;
+                    if (lhs.hasAppId && rhs.hasAppId)
+                        return lhs.appId == rhs.appId;
+                    return false;
+                };
+
+                for (const auto& autoItem : autoAddedItems) {
+                    auto it = std::find_if(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& selected) {
+                        return matchesItem(selected, autoItem);
+                    });
+                    if (it != this->selectedItems.end())
+                        this->selectedItems.erase(it);
+                }
+
+                if (this->shopGridMode)
+                    this->updateShopGrid();
+                else
+                    this->drawMenuItems(false);
+            }
             return;
+        }
 
         this->updateRememberedSelection();
         shopInstStuff::installTitleShop(this->selectedItems, dialogResult, "inst.shop.source_string"_lang);

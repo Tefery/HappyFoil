@@ -78,6 +78,8 @@
             "search_hint": "搜尋所有標題",
             "update_prompt_title": "安裝更新？",
             "update_prompt_desc": "是否一併安裝所選標題可用的更新？ 已找到的更新數量：",
+            "dlc_prompt_title": "Install DLC?",
+            "dlc_prompt_desc": "Include available DLC for selected titles? DLC found: ",
             "motd_title": "每日訊息",
             "buttons_installed": " 詳細資訊     重新整理    / 分區     取消",
             "detail_type": "類型: ",
