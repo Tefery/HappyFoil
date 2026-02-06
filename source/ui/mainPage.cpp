@@ -119,7 +119,7 @@ namespace inst::ui {
         this->exitMenuItem = pu::ui::elm::MenuItem::New("main.menu.exit"_lang);
         this->exitMenuItem->SetColor(COLOR("#FFFFFFFF"));
         this->exitMenuItem->SetIcon("romfs:/images/icons/exit-run.png");
-        const auto tileColor = inst::config::oledMode ? COLOR("#FFFFFF22") : COLOR("#170909A0");
+        const auto tileColor = inst::config::oledMode ? COLOR("#1A1A1ACC") : COLOR("#170909CC");
         const auto highlightColor = inst::config::oledMode ? COLOR("#FF4D4D66") : COLOR("#FF4D4D88");
         const std::vector<std::string> gridLabels = {
             "main.menu.shop"_lang,
@@ -166,6 +166,7 @@ namespace inst::ui {
         this->mainGridHighlight = Rectangle::New(0, 0, kMainGridTileWidth + 8, kMainGridTileHeight + 8, highlightColor, 20);
         if (std::filesystem::exists(inst::config::appDir + "/awoo_main.png")) this->awooImage = Image::New(410, 190, inst::config::appDir + "/awoo_main.png");
         else this->awooImage = Image::New(410, 190, "romfs:/images/awoos/5bbdbcf9a5625cd307c9e9bc360d78bd.png");
+        this->Add(this->awooImage);
         this->Add(this->topRect);
         this->Add(this->botRect);
         this->Add(this->titleImage);
@@ -195,7 +196,6 @@ namespace inst::ui {
         for (auto& label : this->mainGridLabels)
             this->Add(label);
         this->Add(this->mainGridHighlight);
-        this->Add(this->awooImage);
         this->awooImage->SetVisible(!inst::config::gayMode);
         this->updateMainGridSelection();
         this->AddThread(mainMenuThread);
