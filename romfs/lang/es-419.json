@@ -225,6 +225,11 @@
             "user_hint": "Introduce tu nombre de usuario de Ownfoil (opcional)",
             "pass_hint": "Introduce tu contraseña de Ownfoil (opcional)"
         },
+        "cache_reset": {
+            "title": "Reiniciar cache de iconos?",
+            "desc": "Esta opción elimina todo el cache de iconos de la tienda y fuerza la re-descarga la proxima vez que abras la tienda.",
+            "confirm": "Reset"
+        },
         "update": {
             "title": "Actualización disponible",
             "desc0": "¡CyberFoil ",
