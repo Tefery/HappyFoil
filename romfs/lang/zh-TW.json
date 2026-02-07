@@ -6,6 +6,7 @@
             "net": "通過網路安裝",
             "shop": "通過 Ownfoil 安裝",
             "usb": "透過 NS-USBloader 安裝",
+            "mtp": "透過 MTP 安裝",
             "sig": "管理簽名補丁（signature patches）",
             "set": "設置",
             "exit": "退出"

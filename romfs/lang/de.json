@@ -6,6 +6,7 @@
             "net": "Über LAN oder Internet installieren",
             "shop": "Installieren vom Ownfoil-Shop",
             "usb": "Mit NS-USBloader installieren",
+            "mtp": "Mit MTP installieren",
             "sig": "Verwalte Signatur-Patches",
             "set": "Einstellungen",
             "exit": "Beenden"
