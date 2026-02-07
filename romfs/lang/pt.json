@@ -225,6 +225,11 @@
             "user_hint": "Introduza o seu nome de utilizador Ownfoil (opcional)",
             "pass_hint": "Introduza a sua palavra-passe Ownfoil (opcional)"
         },
+        "cache_reset": {
+            "title": "Repor a cache dos ícones da loja?",
+            "desc": "Isto irá eliminar todos os ícones da loja em cache e forçar um novo download na próxima vez que abrir a loja.",
+            "confirm": "Repor"
+        },
         "update": {
             "title": "Atualização disponível",
             "desc0": "CyberFoil ",

@@ -225,6 +225,11 @@
             "user_hint": "請輸入 Ownfoil 使用者名稱 (選填)",
             "pass_hint": "請輸入 Ownfoil 密碼 (選填)"
         },
+        "cache_reset": {
+            "title": "重設商店圖示快取？",
+            "desc": "這將刪除所有已快取的商店圖示，並在你下次開啟商店時強制重新下載。",
+            "confirm": "重設"
+        },
         "update": {
             "title": "有新版本可以更新",
             "desc0": "CyberFoil ",

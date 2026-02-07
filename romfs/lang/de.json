@@ -225,6 +225,11 @@
             "user_hint": "Gib deinen Ownfoil-Benutzernamen ein (optional)",
             "pass_hint": "Gib dein Ownfoil-Passwort ein (optional)"
         },
+        "cache_reset": {
+            "title": "Shop-Icon-Cache zurücksetzen?",
+            "desc": "Dadurch werden alle zwischengespeicherten Shop-Icons gelöscht und beim nächsten Öffnen des Shops erneut heruntergeladen.",
+            "confirm": "Zurücksetzen"
+        },
         "update": {
             "title": "Neue Version verfügbar",
             "desc0": "CyberFoil ",

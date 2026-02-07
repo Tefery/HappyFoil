@@ -129,6 +129,21 @@
             "opt0": "SD",
             "opt1": "Memoria interna"
         },
+        "mtp": {
+            "target": {
+                "title": "Installazione via MTP",
+                "desc": "Dove dovrebbe essere installato?"
+            },
+            "waiting": {
+                "title": "Installazione via MTP",
+                "desc": "Collegati al PC e carica i file nella cartella di installazione MTP.",
+                "hint": "Premi B per interrompere MTP."
+            },
+            "error": {
+                "title": "Errore MTP",
+                "desc": "Inizializzazione del server MTP non riuscita."
+            }
+        },
         "info_page": {
             "top_info0": "Sto installando ",
             "preparing": "Preparando l'installazione...",
@@ -209,6 +224,11 @@
             "url_hint": "Inserisci l'URL del tuo negozio Ownfoil (esempio: http://192.168.1.2:8465)",
             "user_hint": "Inserisci il tuo nome utente Ownfoil (opzionale)",
             "pass_hint": "Inserisci la tua password Ownfoil (opzionale)"
+        },
+        "cache_reset": {
+            "title": "Reimpostare la cache delle icone del negozio?",
+            "desc": "Questo eliminerà tutte le icone del negozio memorizzate nella cache e forzerà un nuovo download la prossima volta che apri il negozio.",
+            "confirm": "Reimposta"
         },
         "update": {
             "title": "Aggiornamento disponibile",
