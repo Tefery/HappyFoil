@@ -79,6 +79,8 @@
             "search_hint": "Искать по всем тайтлам",
             "update_prompt_title": "Установить обновления?",
             "update_prompt_desc": "Включить доступные обновления для выбранных тайтлов? Найдено обновлений: ",
+            "dlc_prompt_title": "Install DLC?",
+            "dlc_prompt_desc": "Include available DLC for selected titles? DLC found: ",
             "motd_title": "Сообщение дня",
             "buttons_installed": " Подробно     Обновить    / Раздел     Отмена",
             "detail_type": "Тип: ",
@@ -213,7 +215,8 @@
             "check_update": "Проверить наличие обновлений CyberFoil",
             "credits": "Благодарности",
             "sound": "Включить звуки",
-            "oled": "Включить режим OLED"
+            "oled": "Включить режим OLED",
+            "mtp_album": "Показывать диск Альбома в режиме установки MTP"
         },
         "nca_warn": {
             "title": "Внимание!",
