@@ -6,6 +6,7 @@
             "net": "Installer à partir d'un LAN ou d'internet",
             "shop": "Installer depuis Ownfoil",
             "usb": "Installer via NS-USBloader",
+            "mtp": "Installer via MTP",
             "sig": "Gérer les sigpatches",
             "set": " Paramètres",
             "exit": " Quitter"

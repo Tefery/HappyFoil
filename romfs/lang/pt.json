@@ -6,6 +6,7 @@
             "net": "Instalar através da LAN ou da Internet",
             "shop": "Instalar a partir do Ownfoil",
             "usb": "Instalar a partir do NS-USBloader",
+            "mtp": "Instalar a partir do MTP",
             "sig": "Gerir patches de assinaturas",
             "set": "Definições",
             "exit": "Sair"
