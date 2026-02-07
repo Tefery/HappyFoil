@@ -2,7 +2,7 @@ name: Build (Nintendo Switch homebrew)
 
 on:
   push:
-    branches: [ "build" ]
+    branches: [ "BuildFromGitHubActions" ]
     tags: [ "v*" ]
   pull_request:
   workflow_dispatch:
