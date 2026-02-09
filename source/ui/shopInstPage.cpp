@@ -385,6 +385,9 @@ namespace inst::ui {
         this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
         this->pageInfoText = TextBlock::New(10, 101, "", 34);
         this->pageInfoText->SetColor(COLOR("#FFFFFFFF"));
+        this->searchInfoText = TextBlock::New(0, 111, "", 20);
+        this->searchInfoText->SetColor(COLOR("#FFFFFFFF"));
+        this->searchInfoText->SetVisible(false);
         this->butText = TextBlock::New(10, 678, "", 20);
         this->butText->SetColor(COLOR("#FFFFFFFF"));
         this->setButtonsText("inst.shop.buttons_loading"_lang);
@@ -462,6 +465,7 @@ namespace inst::ui {
         this->Add(this->ipText);
         this->Add(this->butText);
         this->Add(this->pageInfoText);
+        this->Add(this->searchInfoText);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
         this->Add(this->menu);
@@ -510,11 +514,23 @@ namespace inst::ui {
         if (this->shopSections.empty()) {
             this->pageInfoText->SetText("inst.shop.loading"_lang);
             CenterTextX(this->pageInfoText);
+            this->searchInfoText->SetVisible(false);
             return;
         }
         const auto& section = this->shopSections[this->selectedSectionIndex];
         this->pageInfoText->SetText(section.title);
         CenterTextX(this->pageInfoText);
+        if (!this->searchQuery.empty()) {
+            std::string query = inst::util::shortenString(this->searchQuery, 28, true);
+            this->searchInfoText->SetText("Search: " + query);
+            int x = 1280 - this->searchInfoText->GetTextWidth() - 12;
+            if (x < 0)
+                x = 0;
+            this->searchInfoText->SetX(x);
+            this->searchInfoText->SetVisible(true);
+        } else {
+            this->searchInfoText->SetVisible(false);
+        }
     }
 
     void shopInstPage::updateButtonsText() {
