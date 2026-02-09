@@ -60,10 +60,6 @@ Notes:
 - The Installed section lists content already on the Switch and cannot be installed from.
 - The shop list is cached for faster startup (5-minute TTL). Use X to refresh.
 
-New in 1.3.8:
-- Option to hide installed titles in the eShop (keeps All available).
-- Option to hide the Installed section in the eShop.
-- Updates and DLC now respect base install status and installed DLC visibility.
 
 New in 1.3.11:
 - MTP installs now work reliably across repeated sessions.
@@ -84,7 +80,9 @@ New in 1.3.11:
 
 Screenshots:
 ![Shop Section](screenshots/CyberFoil_eShop.jpg)
-![Shop Section](screenshots/CyberFoil_eShop_settings.jpg)
+![Shop Section](screenshots/CyberFoil_eShop_settings_1.jpg)
+![Shop Section](screenshots/CyberFoil_eShop_settings_2.jpg)
+![Shop Section](screenshots/CyberFoil_eShop_settings_3.jpg)
 
 ## Settings Notes
 - OLED mode uses pure-black UI backgrounds. Toggle in Settings.
