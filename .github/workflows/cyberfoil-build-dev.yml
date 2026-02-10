@@ -3,10 +3,10 @@ name: Build CyberFoil (dev)
 on:
   push:
     branches:
-      - DEV
+      - Development
   pull_request:
     branches:
-      - DEV
+      - Development
 
 permissions:
   contents: read
