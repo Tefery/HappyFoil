@@ -46,8 +46,8 @@ DATA		:=	data
 INCLUDES	:=	include include/ui include/data include/install include/nx include/nx/ipc include/util \
 			include/libusbhsfs/include include/libusbhsfs/source \
 			include/Plutonium/Plutonium/Output-switch/include external/libhaze/include
-APP_TITLE	:=	CyberFoil
-APP_AUTHOR	:=	luketanti
+APP_TITLE	:=	HappyFoil
+APP_AUTHOR	:=	Tefery
 APP_VERSION	:=	1.3.11.H
 ICON		:=	romfs/images/icon.jpg
 ROMFS		:=	romfs
