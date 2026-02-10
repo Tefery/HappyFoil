@@ -95,7 +95,7 @@ namespace {
 
     std::vector<std::string> BuildTinfoilHeaders()
     {
-        std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
+        std::string themeHeader = "Theme: HappyFoil/" + inst::config::appVersion;
         return {
             themeHeader,
             "Uid: 0000000000000000",

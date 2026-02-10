@@ -32,7 +32,7 @@
         },
         "applet": {
             "title": "Applet Mode non è supportata",
-            "desc": "Puoi incontrare problemi utilizzando CyberFoil in Applet Mode. Se\nriscontri problemi, ti prego di utilizzare CyberFoil avviandolo attraverso un gioco\ngià installato (tieni premuto R mentre avvii un gioco)!"
+            "desc": "Puoi incontrare problemi utilizzando HappyFoil in Applet Mode. Se\nriscontri problemi, ti prego di utilizzare HappyFoil avviandolo attraverso un gioco\ngià installato (tieni premuto R mentre avvii un gioco)!"
         },
         "buttons": " Seleziona     Esci",
         "info": {
@@ -44,15 +44,15 @@
             "usb": "Installa via USB con strumenti come NS-USBloader.",
             "net": "Installa file da fonti LAN o internet.",
             "sig": "Installa, aggiorna o rimuovi le signature patch.",
-            "set": "Modifica le preferenze di CyberFoil e le impostazioni dello shop.",
-            "exit": "Chiudi CyberFoil e torna al menu HOME."
+            "set": "Modifica le preferenze di HappyFoil e le impostazioni dello shop.",
+            "exit": "Chiudi HappyFoil e torna al menu HOME."
         }
     },
     "inst": {
         "net": {
             "help": {
                 "title": "Aiuto",
-                "desc": "I file possono essere installati via remoto da altri dispositivi utilizzando programmi come\nNS-USBloader in modialità \"Tinfoil\". Per inviare file, apri uno\ndi questi software sul tuo PC o sul tuo smartphone, inserisci\nl'indirizzo IP (mostrato sullo schermo), seleziona i file e poi inviali alla\nconsole! Se il software che usi non ti permette di selezionare file\nspecifici, prova a cambiare l'estensione del file in qualcosa che venga accettato dal software.\nCyberFoil non legge l'estensione del file durante l'installazione via internet!\n\nSe proprio non riesci, copia i file nella SD e seleziona\nl'opzione \"Installa dalla SD\" dal menù principale!"
+                "desc": "I file possono essere installati via remoto da altri dispositivi utilizzando programmi come\nNS-USBloader in modialità \"Tinfoil\". Per inviare file, apri uno\ndi questi software sul tuo PC o sul tuo smartphone, inserisci\nl'indirizzo IP (mostrato sullo schermo), seleziona i file e poi inviali alla\nconsole! Se il software che usi non ti permette di selezionare file\nspecifici, prova a cambiare l'estensione del file in qualcosa che venga accettato dal software.\nHappyFoil non legge l'estensione del file durante l'installazione via internet!\n\nSe proprio non riesci, copia i file nella SD e seleziona\nl'opzione \"Installa dalla SD\" dal menù principale!"
             },
             "src": {
                 "title": "Da dove vuoi installare?",
@@ -171,7 +171,7 @@
         },
         "nca_verify": {
             "title": "Rilevata firma NCA non valida!",
-            "desc": "Software firmati impropriamente dovrebbero essere installati solo da fonti\nsicure. I file che contengono repack di cartucce e DLC mostreranno sempre\nquesto avviso. Puoi disabilitarlo dalle impostazioni di CyberFoil.\n\nSei sicuro di voler continuare l'installazione?",
+            "desc": "Software firmati impropriamente dovrebbero essere installati solo da fonti\nsicure. I file che contengono repack di cartucce e DLC mostreranno sempre\nquesto avviso. Puoi disabilitarlo dalle impostazioni di HappyFoil.\n\nSei sicuro di voler continuare l'installazione?",
             "opt1": "Sì, comprendo il rischio",
             "error": "Il file NCA seguente non è firmato correttamente: "
         },
@@ -195,7 +195,7 @@
         "backup_failed": "Non è stato possibile effettuare il backup del file \"patches.ini\" di Hekate! Installare comunque?",
         "backup_failed_desc": "Se non usi Hekate puoi ignorare questo avviso.",
         "download_failed": "Non è stato possibile scaricare le SigPatches",
-        "download_failed_desc": "Puoi aver utilizzato una fonte non valida nelle impostazioni di CyberFoil,\no la fonte potrebbe non essere raggiungibile al momento.",
+        "download_failed_desc": "Puoi aver utilizzato una fonte non valida nelle impostazioni di HappyFoil,\no la fonte potrebbe non essere raggiungibile al momento.",
         "version_text2": "Le SigPatches sono state aggiornate per la versione corrente di HOS ",
         "install_complete": "Installazione completata!",
         "complete_desc": "Riavvia la console per applicare i cambiamenti",
@@ -214,7 +214,7 @@
             "nca_verify": "Verifica le firme NCA prima dell'installazione",
             "boost_mode": "Abilita la \"boost mode\" durante le installazioni",
             "ask_delete": "Chiedi di cancellare i file originale dopo l'installazione",
-            "auto_update": "Controlla aggiornamenti di CyberFoil automaticamente",
+            "auto_update": "Controlla aggiornamenti di HappyFoil automaticamente",
             "gay_option": "Rimuovi anime",
             "sig_url": "Fonte URL SigPatches: ",
             "shop_url": "URL Ownfoil: ",
@@ -225,7 +225,7 @@
             "shop_start_grid_mode": "Avvia il negozio in modalità griglia",
             "shop_reset_icons": "Reimpostare la cache delle icone del negozio",
             "language": "Lingua: ",
-            "check_update": "Controlla aggiornamenti di CyberFoil ora",
+            "check_update": "Controlla aggiornamenti di HappyFoil ora",
             "credits": "Crediti",
             "sound": "Abilita i suoni",
             "oled": "Abilita la modalità OLED",
@@ -249,28 +249,28 @@
         },
         "update": {
             "title": "Aggiornamento disponibile",
-            "desc0": "CyberFoil ",
+            "desc0": "HappyFoil ",
             "desc1": " è disponibile adesso! Pronto per aggiornare?",
             "opt0": "Aggiorna",
-            "top_info": "Aggiornamento ad CyberFoil ",
-            "bot_info": "Sto scaricando CyberFoil ",
-            "bot_info2": "Sto estraendo CyberFoil ",
+            "top_info": "Aggiornamento ad HappyFoil ",
+            "bot_info": "Sto scaricando HappyFoil ",
+            "bot_info2": "Sto estraendo HappyFoil ",
             "complete": "Aggiornamento completato!",
             "failed": "Aggiornamento fallito!",
             "end_desc": "Il software verrà chiuso.",
             "title_check_fail": "Nessun aggiornamento disponibile",
-            "desc_check_fail": "Stai usando l'ultima versione di CyberFoil!"
+            "desc_check_fail": "Stai usando l'ultima versione di HappyFoil!"
         },
         "credits": {
             "title": "Un ringraziamento alle seguenti persone!",
             "desc": "- HookedBehemoth per UN SACCO di contributi\n- Adubbz ed altra gente for Tinfoil\n- XorTroll per Plutonium e Goldleaf\n- blawar (strangolatore di moglie) e nicoboss per il supporto ai file NSZ\n- I ragazzi del team e discord AtlasNX (o almeno alcuni di loro)\n- I ragazzi del team e discord RetroNX (di nessun coinvolgimento diretto)\n- namako8982 per l'immagine di Momiji\n- TheXzoron per essere un baka"
         },
         "language": {
-            "title": "Seleziona la lingua di CyberFoil",
+            "title": "Seleziona la lingua di HappyFoil",
             "desc": "Il software verrà chiuso dopo aver cambiato la lingua. Premi B per annullare.",
             "system_language": "Default di sistema"
         },
-        "title": "Cambia le impostazioni di CyberFoil!",
+        "title": "Cambia le impostazioni di HappyFoil!",
         "buttons": " Seleziona/Cambia     Annulla"
     },
     "common": {

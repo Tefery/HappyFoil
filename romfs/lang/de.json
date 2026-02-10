@@ -32,7 +32,7 @@
         },
         "applet": {
             "title": "Applet-Modus wird nicht unterstützt",
-            "desc": "Es kann zu Problemen bei der Verwendung des CyberFoil im Applet-Modus kommen.\nWenn du Probleme hast, starte den CyberFoil über einen installierten Titel (halte R gedrückt, während du ein Spiel startest)!"
+            "desc": "Es kann zu Problemen bei der Verwendung des HappyFoil im Applet-Modus kommen.\nWenn du Probleme hast, starte den HappyFoil über einen installierten Titel (halte R gedrückt, während du ein Spiel startest)!"
         },
         "buttons": " Auswählen     Beenden",
         "info": {
@@ -44,15 +44,15 @@
             "usb": "Installiere per USB mit Tools wie NS-USBloader.",
             "net": "Installiere Dateien über LAN oder Internetquellen.",
             "sig": "Signatur-Patches installieren, aktualisieren oder entfernen.",
-            "set": "CyberFoil-Einstellungen und Shop-Optionen ändern.",
-            "exit": "CyberFoil schließen und zum HOME-Menü zurückkehren."
+            "set": "HappyFoil-Einstellungen und Shop-Optionen ändern.",
+            "exit": "HappyFoil schließen und zum HOME-Menü zurückkehren."
         }
     },
     "inst": {
         "net": {
             "help": {
                 "title": "Hilfe",
-                "desc": "Dateien können von anderen Geräten aus mit Tools wie NS-USBloader im\nTinfoil-Modus installiert werden. Um Dateien an deine Switch zu senden, öffne\neins dieser Programme auf deinem PC oder mobilen Gerät. Gib die IP-Adresse\ndeiner Switch ein (auf dem Bildschirm aufgelistet), wähle die Dateien\naus und übertrage sie dann auf deine Konsole! Wenn die von dir verwendete\nSoftware dir nicht erlaubt bestimmte Dateitypen auszuwählen,\nversuche die Dateiendung in etwas umzubenennen, dass sie akzeptiert. Der CyberFoil\nprüft keine Dateiendungen bei Netzinstallationen!\n\nFalls das nicht klappt, kopiere einfach deine Dateien auf die SD-Karte\nund versuche die Option \"Von SD-Karte installieren\" im Hauptmenü!"
+                "desc": "Dateien können von anderen Geräten aus mit Tools wie NS-USBloader im\nTinfoil-Modus installiert werden. Um Dateien an deine Switch zu senden, öffne\neins dieser Programme auf deinem PC oder mobilen Gerät. Gib die IP-Adresse\ndeiner Switch ein (auf dem Bildschirm aufgelistet), wähle die Dateien\naus und übertrage sie dann auf deine Konsole! Wenn die von dir verwendete\nSoftware dir nicht erlaubt bestimmte Dateitypen auszuwählen,\nversuche die Dateiendung in etwas umzubenennen, dass sie akzeptiert. Der HappyFoil\nprüft keine Dateiendungen bei Netzinstallationen!\n\nFalls das nicht klappt, kopiere einfach deine Dateien auf die SD-Karte\nund versuche die Option \"Von SD-Karte installieren\" im Hauptmenü!"
             },
             "src": {
                 "title": "Von wo aus willst du installieren?",
@@ -171,7 +171,7 @@
         },
         "nca_verify": {
             "title": "Ungültige NCA-Signatur erkannt!",
-            "desc": "Unsachgemäß signierte Software sollte nur von vertrauenswürdigen Quellen\ninstalliert werden. Dateien von gepackten Spiele Modulen und DLC-Freischaltung enthalten,\nwerden immer diese Warnung anzeigen. Du kannst diese Prüfung in den Einstellungen von CyberFoil deaktivieren.\nBist du sicher, dass du die Installation fortsetzen möchtest?",
+            "desc": "Unsachgemäß signierte Software sollte nur von vertrauenswürdigen Quellen\ninstalliert werden. Dateien von gepackten Spiele Modulen und DLC-Freischaltung enthalten,\nwerden immer diese Warnung anzeigen. Du kannst diese Prüfung in den Einstellungen von HappyFoil deaktivieren.\nBist du sicher, dass du die Installation fortsetzen möchtest?",
             "opt1": "Ja, ich verstehe die Risiken",
             "error": "Die gewünschte NCA ist nicht richtig signiert: "
         },
@@ -195,7 +195,7 @@
         "backup_failed": "Konnte die hekate patches.ini nicht finden! Trotzdem installieren?",
         "backup_failed_desc": "Falls du hekate nicht nutzt, kannst du diese Warnung ignorieren.",
         "download_failed": "Konnte die Signatur Patches nicht herunterladen",
-        "download_failed_desc": "Eventuell hast du eine ungültige Quelle in den Einstellung\nvom CyberFoil eingestellt oder der Host ist derzeitig offline.",
+        "download_failed_desc": "Eventuell hast du eine ungültige Quelle in den Einstellung\nvom HappyFoil eingestellt oder der Host ist derzeitig offline.",
         "version_text2": "Deine Signatur Patches wurden für deine HOS Version aktualisiert ",
         "install_complete": "Installation abgeschlossen!",
         "complete_desc": "Starte die Konsole neu um die Änderung zu übernehmen",
@@ -214,7 +214,7 @@
             "nca_verify": "Verifiziere NCA Signatur vor der Installation",
             "boost_mode": "Aktiviere \"Boost-Modus\" während der Installation",
             "ask_delete": "Frage ob installierte Titel gelöscht werden sollen",
-            "auto_update": "Suche automatisch nach Updates für CyberFoil",
+            "auto_update": "Suche automatisch nach Updates für HappyFoil",
             "gay_option": "Entferne Anime",
             "sig_url": "Signatur Patches URL: ",
             "shop_url": "Ownfoil Shop-URL: ",
@@ -225,7 +225,7 @@
             "shop_start_grid_mode": "Shop im Rastermodus starten",
             "shop_reset_icons": "Shop-Icon-Cache zurücksetzen",
             "language": "Sprache: ",
-            "check_update": "Suche nach Updates für CyberFoil",
+            "check_update": "Suche nach Updates für HappyFoil",
             "credits": "Anerkennung",
             "sound": "Töne aktivieren",
             "oled": "OLED-Modus aktivieren",
@@ -249,28 +249,28 @@
         },
         "update": {
             "title": "Neue Version verfügbar",
-            "desc0": "CyberFoil ",
+            "desc0": "HappyFoil ",
             "desc1": " ist jetzt verfügbar! Bereit zu aktualisieren?",
             "opt0": "Aktualisieren",
-            "top_info": "Aktualisierung von CyberFoil ",
-            "bot_info": "Lade CyberFoil herunter ",
-            "bot_info2": "Entpacke CyberFoil ",
+            "top_info": "Aktualisierung von HappyFoil ",
+            "bot_info": "Lade HappyFoil herunter ",
+            "bot_info2": "Entpacke HappyFoil ",
             "complete": "Aktualisierung vollständig!",
             "failed": "Aktualisierung fehlgeschlagen!",
             "end_desc": "Die Software wird nun beendet.",
             "title_check_fail": "Keine Aktualisierungen gefunden",
-            "desc_check_fail": "Du bist auf der aktuellsten Version des CyberFoil!"
+            "desc_check_fail": "Du bist auf der aktuellsten Version des HappyFoil!"
         },
         "credits": {
             "title": "Vielen Dank an die folgenden Leute!",
             "desc": "- HookedBehemoth für viele Beiträge\n- Adubbz und andere Mitwirkende für Tinfoil\n- XorTroll für Plutonium und Goldleaf\n- blawar (Frauenwürger) und nicoboss für NSZ Unterstützung\n- Die netten Leute auf AtlasNX Discuck (Immerhin ein paar davon)\n- Die netten Leute auf RetroNX Discuck (ohne direkte Beteiligung)\n- namako8982 für die Momiji-Kunst\n- TheXzoron dafür das er ein baka ist"
         },
         "language": {
-            "title": "Wähle CyberFoil Sprache",
+            "title": "Wähle HappyFoil Sprache",
             "desc": "Die Software wird danach beendet. Drücke B um den Vorgang abzubrechen.",
             "system_language": "System"
         },
-        "title": "Ändere CyberFoil Einstellungen!",
+        "title": "Ändere HappyFoil Einstellungen!",
         "buttons": " Auswählen/Ändern     Abbrechen "
     },
     "common": {

@@ -36,7 +36,7 @@ static bool isLikelyImageFile(const char *path) {
 }
 
 static std::string getUserAgent() {
-    return "CyberFoil/" + inst::config::appVersion;
+    return "HappyFoil/" + inst::config::appVersion;
 }
 
 size_t writeDataBuffer(char *ptr, size_t size, size_t nmemb, void *userdata) {

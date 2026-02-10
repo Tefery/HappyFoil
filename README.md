@@ -1,18 +1,19 @@
-# CyberFoil
-![GitHub all releases downloads](https://img.shields.io/github/downloads/luketanti/CyberFoil/total)
-![GitHub latest release downloads](https://img.shields.io/github/downloads/luketanti/CyberFoil/latest/total)
+# HappyFoil
+![GitHub all releases downloads](https://img.shields.io/github/downloads/Tefery/HappyFoil/total)
+![GitHub latest release downloads](https://img.shields.io/github/downloads/Tefery/HappyFoil/latest/total)
 
 ## Version: 1.3.11
 
-## Buy me a Coffee at kofi -> https://ko-fi.com/cyberhazard
+## Buy him a Coffee at kofi -> https://ko-fi.com/cyberhazard
 
 DEMO Video: [https://youtu.be/4Kl0n9vnVP8](https://youtu.be/NEwC8vgUZLI)
 
 A NSP, NSZ, XCI, & XCZ Installer with basic eShop support for Nintendo Switch
 
-![CyberFoil Main Menu](screenshots/CyberFoil_Main_Menu.jpg)
+![HappyFoil Main Menu](screenshots/CyberFoil_Main_Menu.jpg)
 
 ## Features
+- PULSE 'X' FOR A HAPPYNESS RESULT
 - Installs NSP/NSZ/XCI/XCZ files and split NSP/XCI files from your SD card
 - Installs NSP/NSZ/XCI/XCZ files over LAN or USB from tools such as [NS-USBloader](https://github.com/developersu/ns-usbloader)
 - Installs NSP/NSZ/XCI/XCZ files over the internet by URL or Google Drive
@@ -21,7 +22,7 @@ A NSP, NSZ, XCI, & XCZ Installer with basic eShop support for Nintendo Switch
 - Installs and manages the latest signature patches quickly and easily
 - Ownfoil-compatible eShop with sections, search, and cover art previews
 - OLED mode for pure-black backgrounds
-- Forked from Awoo Installer [Huntereb Awoo Installer](https://github.com/Huntereb/Awoo-Installer)
+- Forked from CyberFoil [Luketanti CyberFoil](https://github.com/luketanti/CyberFoil)
 - Based on [Adubbz Tinfoil](https://github.com/Adubbz/Tinfoil)
 - Uses [XorTroll's Plutonium](https://github.com/XorTroll/Plutonium) for a pretty graphical interface
 
@@ -31,13 +32,13 @@ Because Tinfoil is no longer being supported and not updated for the new firmwar
 If you want to do other things like manage installed tickets, titles, and user accounts, check out [Goldleaf](https://github.com/XorTroll/Goldleaf)!
 
 ## Ownfoil eShop
-CyberFoil supports an Ownfoil-compatible eShop with sections, search, and cover art previews.
+HappyFoil supports an Ownfoil-compatible eShop with sections, search, and cover art previews.
 
 Ownfoil fork that has been enhanced to work with this -> [Ownfoil](https://github.com/luketanti/ownfoil)
 
 Setup:
 - Run Ownfoil and note its host/port (example: `http://192.168.1.2:8465`).
-- In CyberFoil settings, set Shop URL, Username, and Password (optional).
+- In HappyFoil settings, set Shop URL, Username, and Password (optional).
 - If your shop is private, make sure credentials are correct.
 
 Browsing:
@@ -53,7 +54,7 @@ Updates and DLC:
 
 Install flow:
 - Select one or more base titles and press Plus to install.
-- CyberFoil can prompt to include available updates for selected titles.
+- HappyFoil can prompt to include available updates for selected titles.
 
 Notes:
 - Encrypted Ownfoil responses are not supported.
@@ -87,9 +88,9 @@ Screenshots:
 ## Settings Notes
 - OLED mode uses pure-black UI backgrounds. Toggle in Settings.
 - "Remove anime" hides the mascot art.
-- Sounds can be disabled in Settings. You can override sounds by placing `success.wav` and `bark.wav` in `sdmc:/switch/CyberFoil/`.
+- Sounds can be disabled in Settings. You can override sounds by placing `success.wav` and `bark.wav` in `sdmc:/switch/HappyFoil/`.
 - MTP setting: you can enable/disable exposing the Album drive while MTP install mode is running.
-- Shop icon cache is stored in `sdmc:/switch/CyberFoil/shop_icons/`.
+- Shop icon cache is stored in `sdmc:/switch/HappyFoil/shop_icons/`.
 - Touch input: tap items in the main menu and settings to select.
 
 ## To Do

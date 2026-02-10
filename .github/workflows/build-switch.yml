@@ -35,9 +35,9 @@ jobs:
           end_ts=$(date +%s)
           duration=$((end_ts - start_ts))
 
-          if [ -f "./cyberfoil.nro" ]; then
+          if [ -f "./happyfoil.nro" ]; then
             nro_status="present"
-            nro_size=$(stat -c%s "./cyberfoil.nro" 2>/dev/null || stat -f%z "./cyberfoil.nro")
+            nro_size=$(stat -c%s "./happyfoil.nro" 2>/dev/null || stat -f%z "./happyfoil.nro")
           else
             nro_status="missing"
             nro_size="0"
@@ -48,12 +48,12 @@ jobs:
             echo "- Commit: ${GITHUB_SHA}"
             echo "- Runner: $(uname -a)"
             echo "- Duration: ${duration}s"
-            echo "- Output: cyberfoil.nro (${nro_status}, ${nro_size} bytes)"
+            echo "- Output: happyfoil.nro (${nro_status}, ${nro_size} bytes)"
           } >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Upload cyberfoil.nro artifact
+      - name: Upload happyfoil.nro artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cyberfoil-dev-nro
-          path: ./cyberfoil.nro
+          name: happyfoil-dev-nro
+          path: ./happyfoil.nro
           if-no-files-found: error

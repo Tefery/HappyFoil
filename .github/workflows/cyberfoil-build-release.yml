@@ -1,4 +1,4 @@
-name: Build CyberFoil (release)
+name: Build HappyFoil (release)
 
 on:
   workflow_dispatch:
@@ -28,9 +28,9 @@ jobs:
           dkp-pacman -S --noconfirm --needed switch-ntfs-3g switch-lwext4
           make -j"$(nproc)"
 
-          # Your Makefile outputs ./cyberfoil.nro (TARGET := cyberfoil)
-          if [ ! -f "./cyberfoil.nro" ]; then
-            echo "ERROR: Expected ./cyberfoil.nro not found"
+          # Your Makefile outputs ./happyfoil.nro (TARGET := happyfoil)
+          if [ ! -f "./happyfoil.nro" ]; then
+            echo "ERROR: Expected ./happyfoil.nro not found"
             echo "Debug: any .nro files present?"
             find . -type f -name '*.nro' -print -exec ls -l {} \; || true
             exit 1
@@ -44,19 +44,19 @@ jobs:
             exit 1
           fi
 
-      - name: Package cyberfoil.zip (switch/cyberfoil/cyberfoil.nro)
+      - name: Package happyfoil.zip (switch/happyfoil/happyfoil.nro)
         shell: bash
         run: |
           set -euo pipefail
 
-          rm -rf dist cyberfoil.zip
-          mkdir -p dist/switch/cyberfoil
-          cp -v ./cyberfoil.nro dist/switch/cyberfoil/cyberfoil.nro
+          rm -rf dist happyfoil.zip
+          mkdir -p dist/switch/happyfoil
+          cp -v ./happyfoil.nro dist/switch/happyfoil/happyfoil.nro
 
           # Create the zip using Python (no dependency on 'zip' being installed)
           python3 - <<'PY'
           import os, zipfile
-          zip_name = "cyberfoil.zip"
+          zip_name = "happyfoil.zip"
           base_dir = "dist"
           with zipfile.ZipFile(zip_name, "w", compression=zipfile.ZIP_DEFLATED) as z:
               for root, _, files in os.walk(os.path.join(base_dir, "switch")):
@@ -68,22 +68,22 @@ jobs:
           PY
 
           echo "---- package ----"
-          ls -lah cyberfoil.zip
+          ls -lah happyfoil.zip
           python3 - <<'PY'
           import zipfile
-          with zipfile.ZipFile("cyberfoil.zip") as z:
+          with zipfile.ZipFile("happyfoil.zip") as z:
               print("\n".join(z.namelist()))
           PY
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CyberFoil
-          path: cyberfoil.zip
+          name: HappyFoil
+          path: happyfoil.zip
           if-no-files-found: error
 
       - name: Publish GitHub Release (auto notes)
         uses: softprops/action-gh-release@v2
         with:
-          files: cyberfoil.zip
+          files: happyfoil.zip
           generate_release_notes: true
