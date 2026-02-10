@@ -61,7 +61,7 @@ namespace inst::config {
         languageSetting = 99;
         autoUpdate = true;
         deletePrompt = true;
-        gayMode = true;
+        gayMode = false;
         soundEnabled = true;
         oledMode = true;
         mtpExposeAlbum = false;
