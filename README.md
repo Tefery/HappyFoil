@@ -1,8 +1,8 @@
-# HappyFoil
+# 💖HappyFoil💖
 ![GitHub all releases downloads](https://img.shields.io/github/downloads/Tefery/HappyFoil/total)
 ![GitHub latest release downloads](https://img.shields.io/github/downloads/Tefery/HappyFoil/latest/total)
 
-## Version: 1.3.11
+## Version: 1.3.11.H
 
 ## Buy him a Coffee at kofi -> https://ko-fi.com/cyberhazard
 
@@ -13,7 +13,7 @@ A NSP, NSZ, XCI, & XCZ Installer with basic eShop support for Nintendo Switch
 ![HappyFoil Main Menu](screenshots/CyberFoil_Main_Menu.jpg)
 
 ## Features
-- PULSE 'X' FOR A HAPPYNESS RESULT
+- **😍 PRESS X FOR A HAPPYNESS RESULT 😍**
 - Installs NSP/NSZ/XCI/XCZ files and split NSP/XCI files from your SD card
 - Installs NSP/NSZ/XCI/XCZ files over LAN or USB from tools such as [NS-USBloader](https://github.com/developersu/ns-usbloader)
 - Installs NSP/NSZ/XCI/XCZ files over the internet by URL or Google Drive
