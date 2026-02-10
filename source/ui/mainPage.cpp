@@ -170,6 +170,7 @@ namespace inst::ui {
         if (std::filesystem::exists(inst::config::appDir + "/awoo_alter.png")) this->boobsImage = Image::New(410, 190, inst::config::appDir + "/awoo_alter.png");
         else this->boobsImage = Image::New(410, 190, "romfs:/images/awoos/7d5d18b92253bc63e61c7cbc88fe3092.png");
         this->Add(this->awooImage);
+        this->Add(this->boobsImage);
         this->Add(this->topRect);
         this->Add(this->botRect);
         this->Add(this->titleImage);
@@ -382,19 +383,9 @@ namespace inst::ui {
     }
 
     void MainPage::onInput(u64 Down, u64 Up, u64 Held, pu::ui::Touch Pos) {
-
         int bottomTapX = 0;
         if (DetectBottomHintTap(Pos, this->bottomHintTouch, 668, 52, bottomTapX)) {
             Down |= FindBottomHintButton(this->bottomHintSegments, bottomTapX);
-        }
-        if (!inst::config::gayMode) {
-            if (Down & HidNpadButton_X) {
-                this->awooImage->SetVisible(false);
-                this->boobsImage->SetVisible(true);
-            } else if (Up & HidNpadButton_X) {
-                this->awooImage->SetVisible(true);
-                this->boobsImage->SetVisible(false);
-            }
         }
         if (((Down & HidNpadButton_Plus) || (Down & HidNpadButton_Minus) || (Down & HidNpadButton_B)) && mainApp->IsShown()) {
             mainApp->FadeOut();
@@ -456,6 +447,16 @@ namespace inst::ui {
             }
             this->touchActive = false;
             this->touchMoved = false;
+        }
+        
+        if (!inst::config::gayMode) {
+            if (Down & HidNpadButton_X) {
+                this->awooImage->SetVisible(false);
+                this->boobsImage->SetVisible(true);
+            } else if (Up & HidNpadButton_X) {
+                this->awooImage->SetVisible(true);
+                this->boobsImage->SetVisible(false);
+            }
         }
 
         if ((Down & HidNpadButton_A) || touchSelect)
