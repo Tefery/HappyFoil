@@ -63,7 +63,7 @@ namespace inst::config {
         deletePrompt = true;
         gayMode = false;
         soundEnabled = true;
-        oledMode = true;
+        oledMode = false;
         mtpExposeAlbum = false;
         ignoreReqVers = true;
         overClock = true;
