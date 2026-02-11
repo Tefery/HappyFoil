@@ -3,6 +3,7 @@
 #include <pu/Plutonium>
 #include "shopInstall.hpp"
 #include "ui/bottomHint.hpp"
+#include <vector>
 
 using namespace pu::ui::elm;
 namespace inst::ui {
@@ -39,6 +40,8 @@ namespace inst::ui {
             std::vector<shopInstStuff::ShopItem> selectedItems;
             std::vector<shopInstStuff::ShopItem> visibleItems;
             std::vector<shopInstStuff::ShopItem> availableUpdates;
+            bool nativeUpdatesSectionPresent = false;
+            bool nativeDlcSectionPresent = false;
             BottomHintTouchState bottomHintTouch;
             std::vector<BottomHintSegment> bottomHintSegments;
             int selectedSectionIndex = 0;
@@ -46,6 +49,10 @@ namespace inst::ui {
             std::string previewKey;
             bool debugVisible = false;
             bool descriptionVisible = false;
+            bool descriptionOverlayVisible = false;
+            std::vector<std::string> descriptionOverlayLines;
+            int descriptionOverlayOffset = 0;
+            int descriptionOverlayVisibleLines = 16;
             int gridSelectedIndex = 0;
             int gridPage = -1;
             bool shopGridMode = false;
@@ -79,6 +86,10 @@ namespace inst::ui {
             TextBlock::Ref searchInfoText;
             Rectangle::Ref descriptionRect;
             TextBlock::Ref descriptionText;
+            Rectangle::Ref descriptionOverlayRect;
+            TextBlock::Ref descriptionOverlayTitleText;
+            TextBlock::Ref descriptionOverlayBodyText;
+            TextBlock::Ref descriptionOverlayHintText;
             void centerPageInfoText();
             void drawMenuItems(bool clearItems);
             void selectTitle(int selectedIndex);
@@ -87,6 +98,7 @@ namespace inst::ui {
             void updateButtonsText();
             void setButtonsText(const std::string& text);
             void buildInstalledSection();
+            void buildLegacyOwnedSections();
             void cacheAvailableUpdates();
             void filterOwnedSections();
             void updatePreview();
@@ -98,6 +110,11 @@ namespace inst::ui {
             bool isInstalledSection() const;
             void showInstalledDetails();
             void showCurrentDescriptionDialog();
+            bool tryGetCurrentDescription(std::string& outTitle, std::string& outDescription) const;
+            void openDescriptionOverlay();
+            void closeDescriptionOverlay();
+            void scrollDescriptionOverlay(int delta);
+            void refreshDescriptionOverlayBody();
             void updateDescriptionPanel();
     };
 }

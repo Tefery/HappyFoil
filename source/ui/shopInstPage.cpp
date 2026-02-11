@@ -1,7 +1,9 @@
 #include <algorithm>
+#include <cstdio>
 #include <filesystem>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
@@ -18,6 +20,8 @@
 #include "ui/bottomHint.hpp"
 
 #define COLOR(hex) pu::ui::Color::FromHex(hex)
+#define ShopDlcTrace(...) ((void)0)
+#define ResetShopDlcTrace() ((void)0)
 
 namespace {
     constexpr int kGridCols = 10;
@@ -29,6 +33,7 @@ namespace {
     constexpr int kGridStartX = (1280 - kGridWidth) / 2;
     constexpr int kGridStartY = 120;
     constexpr int kGridItemsPerPage = kGridCols * kGridRows;
+    bool TryParseHexU64(const std::string& hex, std::uint64_t& out);
 
     std::string NormalizeHex(std::string hex)
     {
@@ -39,6 +44,51 @@ namespace {
                 out.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
         }
         return out;
+    }
+
+    std::string TrimAscii(const std::string& value)
+    {
+        const auto start = value.find_first_not_of(" \t\r\n");
+        if (start == std::string::npos)
+            return std::string();
+        const auto end = value.find_last_not_of(" \t\r\n");
+        return value.substr(start, (end - start) + 1);
+    }
+
+    bool TryParseTitleIdText(const std::string& value, std::uint64_t& out)
+    {
+        std::string text = TrimAscii(value);
+        if (text.empty())
+            return false;
+
+        if (text.rfind("0x", 0) == 0 || text.rfind("0X", 0) == 0)
+            text = text.substr(2);
+
+        bool hasHexLetters = false;
+        bool allDigits = !text.empty();
+        for (unsigned char c : text) {
+            if (!std::isxdigit(c))
+                return false;
+            if (std::isalpha(c))
+                hasHexLetters = true;
+            if (!std::isdigit(c))
+                allDigits = false;
+        }
+
+        if (hasHexLetters || text.size() == 16) {
+            return TryParseHexU64(text, out);
+        }
+
+        if (allDigits) {
+            char* end = nullptr;
+            unsigned long long parsed = std::strtoull(text.c_str(), &end, 10);
+            if (end == text.c_str() || (end && *end != '\0'))
+                return false;
+            out = static_cast<std::uint64_t>(parsed);
+            return true;
+        }
+
+        return false;
     }
 
     std::uint32_t DecodeUtf8CodePoint(const std::string& text, std::size_t& i)
@@ -250,6 +300,38 @@ namespace {
         }
     }
 
+    bool TryInferNormalizedAppType(const shopInstStuff::ShopItem& item, std::int32_t& outType)
+    {
+        if (NormalizeAppTypeValue(item.appType, outType))
+            return true;
+
+        if (item.hasAppId) {
+            std::uint64_t parsedAppId = 0;
+            if (TryParseTitleIdText(item.appId, parsedAppId)) {
+                const std::uint64_t suffix = parsedAppId & 0xFFFULL;
+                if (suffix == 0x000ULL)
+                    outType = NcmContentMetaType_Application;
+                else if (suffix == 0x800ULL)
+                    outType = NcmContentMetaType_Patch;
+                else
+                    outType = NcmContentMetaType_AddOnContent;
+                return true;
+            }
+        }
+
+        if (!item.hasTitleId)
+            return false;
+
+        const std::uint64_t suffix = item.titleId & 0xFFFULL;
+        if (suffix == 0x000ULL)
+            outType = NcmContentMetaType_Application;
+        else if (suffix == 0x800ULL)
+            outType = NcmContentMetaType_Patch;
+        else
+            outType = NcmContentMetaType_AddOnContent;
+        return true;
+    }
+
     bool TryResolveBaseTitleId(const shopInstStuff::ShopItem& item, std::uint64_t& outBaseId)
     {
         // Some shops publish title_id as the base title even for UPDATE/DLC entries.
@@ -260,11 +342,8 @@ namespace {
 
         std::uint64_t parsedAppId = 0;
         bool hasParsedAppId = false;
-        if (item.hasAppId) {
-            std::string appId = NormalizeHex(item.appId);
-            if (appId.size() == 16)
-                hasParsedAppId = TryParseHexU64(appId, parsedAppId);
-        }
+        if (item.hasAppId)
+            hasParsedAppId = TryParseTitleIdText(item.appId, parsedAppId);
 
         if (hasParsedAppId) {
             const std::uint64_t suffix = parsedAppId & 0xFFFULL;
@@ -308,16 +387,34 @@ namespace {
     bool IsBaseItem(const shopInstStuff::ShopItem& item)
     {
         std::int32_t normalizedType = -1;
-        if (NormalizeAppTypeValue(item.appType, normalizedType) && normalizedType == NcmContentMetaType_Application)
-            return true;
+        return TryInferNormalizedAppType(item, normalizedType) && normalizedType == NcmContentMetaType_Application;
+    }
+
+    bool IsUpdateItem(const shopInstStuff::ShopItem& item)
+    {
+        std::int32_t normalizedType = -1;
+        return TryInferNormalizedAppType(item, normalizedType) && normalizedType == NcmContentMetaType_Patch;
+    }
+
+    bool IsDlcItem(const shopInstStuff::ShopItem& item)
+    {
+        std::int32_t normalizedType = -1;
+        return TryInferNormalizedAppType(item, normalizedType) && normalizedType == NcmContentMetaType_AddOnContent;
+    }
+
+    std::string BuildItemIdentityKey(const shopInstStuff::ShopItem& item)
+    {
+        if (!item.url.empty())
+            return "url:" + item.url;
+        if (item.hasTitleId)
+            return "tid:" + std::to_string(static_cast<unsigned long long>(item.titleId));
         if (item.hasAppId) {
-            std::string appId = NormalizeHex(item.appId);
-            return appId.size() >= 3 && appId.rfind("000") == appId.size() - 3;
+            std::uint64_t parsedAppId = 0;
+            if (TryParseTitleIdText(item.appId, parsedAppId))
+                return "aid:" + std::to_string(static_cast<unsigned long long>(parsedAppId));
+            return "aid:" + NormalizeHex(item.appId);
         }
-        if (item.hasTitleId) {
-            return (item.titleId & 0xFFF) == 0;
-        }
-        return false;
+        return std::string();
     }
 
     bool TryGetOfflineIconBaseId(const shopInstStuff::ShopItem& item, std::uint64_t& outBaseId)
@@ -457,39 +554,47 @@ namespace {
         return out.substr(first, (last - first) + 1);
     }
 
-    std::string WrapDescriptionText(const std::string& text, std::size_t maxLineChars, std::size_t maxLines)
+    std::vector<std::string> WrapDescriptionLines(const std::string& text, std::size_t maxLineChars)
     {
-        if (text.empty() || maxLineChars == 0 || maxLines == 0)
-            return std::string();
+        std::vector<std::string> lines;
+        if (text.empty() || maxLineChars == 0)
+            return lines;
 
         std::istringstream iss(text);
-        std::vector<std::string> lines;
         std::string word;
         std::string line;
-        bool truncated = false;
-
         while (iss >> word) {
             if (word.size() > maxLineChars)
                 word = word.substr(0, maxLineChars);
 
             if (line.empty()) {
                 line = word;
-            } else if ((line.size() + 1 + word.size()) <= maxLineChars) {
-                line += " " + word;
-            } else {
-                lines.push_back(line);
-                if (lines.size() >= maxLines) {
-                    truncated = true;
-                    break;
-                }
-                line = word;
+                continue;
             }
+
+            if ((line.size() + 1 + word.size()) <= maxLineChars) {
+                line += " " + word;
+                continue;
+            }
+
+            lines.push_back(line);
+            line = word;
         }
 
-        if (!truncated && !line.empty() && lines.size() < maxLines)
+        if (!line.empty())
             lines.push_back(line);
-        else if (!line.empty() && lines.size() >= maxLines)
-            truncated = true;
+        return lines;
+    }
+
+    std::string WrapDescriptionText(const std::string& text, std::size_t maxLineChars, std::size_t maxLines)
+    {
+        if (text.empty() || maxLineChars == 0 || maxLines == 0)
+            return std::string();
+
+        std::vector<std::string> lines = WrapDescriptionLines(text, maxLineChars);
+        bool truncated = lines.size() > maxLines;
+        if (lines.size() > maxLines)
+            lines.resize(maxLines);
 
         if (lines.empty())
             return std::string();
@@ -569,7 +674,7 @@ namespace inst::ui {
         this->butText = TextBlock::New(10, 678, "", 20);
         this->butText->SetColor(COLOR("#FFFFFFFF"));
         this->setButtonsText("inst.shop.buttons_loading"_lang);
-        this->menu = pu::ui::elm::Menu::New(0, 136, 1280, COLOR("#FFFFFF00"), 28, 18, 18);
+        this->menu = pu::ui::elm::Menu::New(0, 136, 1280, COLOR("#FFFFFF00"), 36, 14, 22);
         if (inst::config::oledMode) {
             this->menu->SetOnFocusColor(COLOR("#FFFFFF33"));
             this->menu->SetScrollbarColor(COLOR("#FFFFFF66"));
@@ -624,6 +729,17 @@ namespace inst::ui {
         this->descriptionText = TextBlock::New(22, 518, "", 18);
         this->descriptionText->SetColor(COLOR("#FFFFFFFF"));
         this->descriptionText->SetVisible(false);
+        this->descriptionOverlayRect = Rectangle::New(24, 86, 1232, 564, inst::config::oledMode ? COLOR("#000000EE") : COLOR("#170909EE"));
+        this->descriptionOverlayRect->SetVisible(false);
+        this->descriptionOverlayTitleText = TextBlock::New(46, 102, "", 24);
+        this->descriptionOverlayTitleText->SetColor(COLOR("#FFFFFFFF"));
+        this->descriptionOverlayTitleText->SetVisible(false);
+        this->descriptionOverlayBodyText = TextBlock::New(46, 142, "", 19);
+        this->descriptionOverlayBodyText->SetColor(COLOR("#FFFFFFFF"));
+        this->descriptionOverlayBodyText->SetVisible(false);
+        this->descriptionOverlayHintText = TextBlock::New(46, 618, "B Close    Up/Down Scroll", 18);
+        this->descriptionOverlayHintText->SetColor(COLOR("#FFFFFFFF"));
+        this->descriptionOverlayHintText->SetVisible(false);
         this->Add(this->topRect);
         this->Add(this->infoRect);
         this->Add(this->botRect);
@@ -668,6 +784,10 @@ namespace inst::ui {
         this->Add(this->emptySectionText);
         this->Add(this->descriptionRect);
         this->Add(this->descriptionText);
+        this->Add(this->descriptionOverlayRect);
+        this->Add(this->descriptionOverlayTitleText);
+        this->Add(this->descriptionOverlayBodyText);
+        this->Add(this->descriptionOverlayHintText);
     }
 
     bool shopInstPage::isAllSection() const {
@@ -799,12 +919,133 @@ namespace inst::ui {
         this->shopSections.insert(this->shopSections.begin(), std::move(installedSection));
     }
 
+    void shopInstPage::buildLegacyOwnedSections() {
+        if (this->shopSections.empty())
+            return;
+
+        auto normalizeSectionId = [](std::string value) {
+            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+            });
+            return value;
+        };
+
+        bool hasAllSection = false;
+        bool hasUpdatesSection = false;
+        bool hasDlcSection = false;
+        int allSectionIndex = -1;
+        for (std::size_t i = 0; i < this->shopSections.size(); i++) {
+            const std::string id = normalizeSectionId(this->shopSections[i].id);
+            if (id == "all") {
+                hasAllSection = true;
+                if (allSectionIndex < 0)
+                    allSectionIndex = static_cast<int>(i);
+            } else if (id == "updates" || id == "update") {
+                hasUpdatesSection = true;
+            } else if (id == "dlc" || id == "addon" || id == "add-on" || id == "add_ons") {
+                hasDlcSection = true;
+            }
+        }
+
+        if (!hasAllSection || (hasUpdatesSection && hasDlcSection))
+            return;
+
+        Result rc = nsInitialize();
+        if (R_FAILED(rc))
+            return;
+
+        std::unordered_map<std::uint64_t, bool> baseInstalled;
+        auto isBaseInstalled = [&](std::uint64_t baseTitleId) {
+            if (baseTitleId == 0)
+                return false;
+            const auto it = baseInstalled.find(baseTitleId);
+            if (it != baseInstalled.end())
+                return it->second;
+            const bool installed = IsBaseTitleCurrentlyInstalled(baseTitleId);
+            baseInstalled[baseTitleId] = installed;
+            return installed;
+        };
+
+        std::vector<shopInstStuff::ShopItem> updates;
+        std::vector<shopInstStuff::ShopItem> dlcs;
+        std::unordered_set<std::string> seenUpdateKeys;
+        std::unordered_set<std::string> seenDlcKeys;
+
+        for (const auto& section : this->shopSections) {
+            const std::string id = normalizeSectionId(section.id);
+            if (id == "installed" || id == "updates" || id == "update" || id == "dlc" || id == "addon" || id == "add-on" || id == "add_ons")
+                continue;
+
+            for (const auto& item : section.items) {
+                if (item.url.empty())
+                    continue;
+
+                std::uint64_t baseTitleId = 0;
+                if (!DeriveBaseTitleId(item, baseTitleId))
+                    continue;
+                if (!isBaseInstalled(baseTitleId))
+                    continue;
+
+                if (!hasUpdatesSection && IsUpdateItem(item)) {
+                    const std::string key = BuildItemIdentityKey(item);
+                    if (!key.empty() && !seenUpdateKeys.insert(key).second)
+                        continue;
+                    updates.push_back(item);
+                    continue;
+                }
+
+                if (!hasDlcSection && IsDlcItem(item)) {
+                    if (item.hasTitleId && tin::util::IsTitleInstalled(item.titleId))
+                        continue;
+                    const std::string key = BuildItemIdentityKey(item);
+                    if (!key.empty() && !seenDlcKeys.insert(key).second)
+                        continue;
+                    dlcs.push_back(item);
+                }
+            }
+        }
+
+        nsExit();
+
+        auto sortByName = [](std::vector<shopInstStuff::ShopItem>& items) {
+            std::sort(items.begin(), items.end(), [](const auto& a, const auto& b) {
+                return inst::util::ignoreCaseCompare(a.name, b.name);
+            });
+        };
+        sortByName(updates);
+        sortByName(dlcs);
+
+        int insertIndex = (allSectionIndex >= 0) ? (allSectionIndex + 1) : static_cast<int>(this->shopSections.size());
+        if (!hasUpdatesSection && !updates.empty()) {
+            shopInstStuff::ShopSection updatesSection;
+            updatesSection.id = "updates";
+            updatesSection.title = "Updates";
+            updatesSection.items = std::move(updates);
+            this->shopSections.insert(this->shopSections.begin() + insertIndex, std::move(updatesSection));
+            insertIndex++;
+        }
+        if (!hasDlcSection && !dlcs.empty()) {
+            shopInstStuff::ShopSection dlcSection;
+            dlcSection.id = "dlc";
+            dlcSection.title = "DLC";
+            dlcSection.items = std::move(dlcs);
+            this->shopSections.insert(this->shopSections.begin() + insertIndex, std::move(dlcSection));
+        }
+    }
+
     void shopInstPage::cacheAvailableUpdates() {
         this->availableUpdates.clear();
+        std::unordered_set<std::string> seenKeys;
         for (const auto& section : this->shopSections) {
-            if (section.id == "updates") {
-                this->availableUpdates = section.items;
-                break;
+            const bool sectionLooksLikeUpdates = (section.id == "updates" || section.id == "update");
+            for (const auto& item : section.items) {
+                if (!sectionLooksLikeUpdates && !IsUpdateItem(item))
+                    continue;
+
+                const std::string identity = BuildItemIdentityKey(item);
+                if (!identity.empty() && !seenKeys.insert(identity).second)
+                    continue;
+                this->availableUpdates.push_back(item);
             }
         }
     }
@@ -814,11 +1055,93 @@ namespace inst::ui {
             return;
 
         Result rc = nsInitialize();
-        if (R_FAILED(rc))
+        if (R_FAILED(rc)) {
+            ShopDlcTrace("filterOwnedSections nsInitialize failed rc=0x%08X", rc);
             return;
+        }
+        const bool ncmReady = R_SUCCEEDED(ncmInitialize());
+        ShopDlcTrace("filterOwnedSections begin sections=%llu ncmReady=%d", static_cast<unsigned long long>(this->shopSections.size()), ncmReady ? 1 : 0);
 
         std::unordered_map<std::uint64_t, std::uint32_t> installedUpdateVersion;
         std::unordered_map<std::uint64_t, bool> baseInstalled;
+        std::unordered_map<std::uint64_t, bool> metaLoaded;
+        std::unordered_map<std::uint64_t, bool> dlcInstalledById;
+        const bool enforceBaseInstallForDlcSection = true;
+        ShopDlcTrace("filter mode nativeDlcSectionPresent=%d enforceBaseInstallForDlcSection=%d",
+            this->nativeDlcSectionPresent ? 1 : 0,
+            enforceBaseInstallForDlcSection ? 1 : 0);
+
+        auto looksLikeDlcTitleId = [](std::uint64_t titleId) {
+            const std::uint64_t suffix = titleId & 0xFFFULL;
+            return suffix != 0x000ULL && suffix != 0x800ULL;
+        };
+
+        auto resolveItemDlcTitleId = [&](const shopInstStuff::ShopItem& item, std::uint64_t& outTitleId) {
+            std::uint64_t parsedAppId = 0;
+            if (item.hasAppId && TryParseTitleIdText(item.appId, parsedAppId) && looksLikeDlcTitleId(parsedAppId)) {
+                outTitleId = parsedAppId;
+                return true;
+            }
+
+            if (item.hasTitleId && looksLikeDlcTitleId(item.titleId)) {
+                outTitleId = item.titleId;
+                return true;
+            }
+
+            return false;
+        };
+
+        auto loadInstalledMeta = [&](std::uint64_t baseTitleId) {
+            const auto loadedIt = metaLoaded.find(baseTitleId);
+            if (loadedIt != metaLoaded.end())
+                return;
+
+            metaLoaded[baseTitleId] = true;
+            s32 metaCount = 0;
+            if (R_FAILED(nsCountApplicationContentMeta(baseTitleId, &metaCount)) || metaCount <= 0)
+                return;
+
+            std::vector<NsApplicationContentMetaStatus> list(static_cast<std::size_t>(metaCount));
+            s32 metaOut = 0;
+            if (R_FAILED(nsListApplicationContentMetaStatus(baseTitleId, 0, list.data(), metaCount, &metaOut)) || metaOut <= 0)
+                return;
+
+            for (s32 i = 0; i < metaOut; i++) {
+                if (list[i].meta_type == NcmContentMetaType_Patch) {
+                    auto& version = installedUpdateVersion[baseTitleId];
+                    if (list[i].version > version)
+                        version = list[i].version;
+                }
+            }
+        };
+
+        auto isDlcInstalledByTitleId = [&](std::uint64_t dlcTitleId) {
+            if (!ncmReady || dlcTitleId == 0)
+                return false;
+            auto cached = dlcInstalledById.find(dlcTitleId);
+            if (cached != dlcInstalledById.end())
+                return cached->second;
+
+            bool installed = false;
+            const NcmStorageId storages[] = {NcmStorageId_BuiltInUser, NcmStorageId_SdCard};
+            for (auto storage : storages) {
+                NcmContentMetaDatabase db;
+                if (R_FAILED(ncmOpenContentMetaDatabase(&db, storage)))
+                    continue;
+                NcmContentMetaKey key = {};
+                if (R_SUCCEEDED(ncmContentMetaDatabaseGetLatestContentMetaKey(&db, &key, dlcTitleId))) {
+                    if (key.type == NcmContentMetaType_AddOnContent && key.id == dlcTitleId) {
+                        installed = true;
+                        ncmContentMetaDatabaseClose(&db);
+                        break;
+                    }
+                }
+                ncmContentMetaDatabaseClose(&db);
+            }
+
+            dlcInstalledById[dlcTitleId] = installed;
+            return installed;
+        };
 
         const s32 chunk = 64;
         s32 offset = 0;
@@ -829,10 +1152,19 @@ namespace inst::ui {
                 break;
             for (s32 i = 0; i < outCount; i++) {
                 const auto titleId = records[i].application_id;
-                baseInstalled[titleId] = IsBaseTitleCurrentlyInstalled(titleId);
+                const bool installed = IsBaseTitleCurrentlyInstalled(titleId);
+                baseInstalled[titleId] = installed;
+                if (installed)
+                    loadInstalledMeta(titleId);
             }
             offset += outCount;
         }
+        std::size_t installedBaseCount = 0;
+        for (const auto& entry : baseInstalled) {
+            if (entry.second)
+                installedBaseCount++;
+        }
+        ShopDlcTrace("filter base scan done knownBases=%llu installedBases=%llu", static_cast<unsigned long long>(baseInstalled.size()), static_cast<unsigned long long>(installedBaseCount));
 
         auto isBaseInstalled = [&](const shopInstStuff::ShopItem& item, std::uint32_t& outVersion) {
             std::uint64_t baseTitleId = 0;
@@ -841,6 +1173,7 @@ namespace inst::ui {
             auto baseIt = baseInstalled.find(baseTitleId);
             if (baseIt != baseInstalled.end()) {
                 if (baseIt->second) {
+                    loadInstalledMeta(baseTitleId);
                     auto verIt = installedUpdateVersion.find(baseTitleId);
                     if (verIt != installedUpdateVersion.end()) {
                         outVersion = verIt->second;
@@ -855,6 +1188,7 @@ namespace inst::ui {
             }
             bool installed = IsBaseTitleCurrentlyInstalled(baseTitleId);
             if (installed) {
+                loadInstalledMeta(baseTitleId);
                 tin::util::GetInstalledUpdateVersion(baseTitleId, outVersion);
                 if (outVersion == 0)
                     TryGetInstalledUpdateVersionNcm(baseTitleId, outVersion);
@@ -862,6 +1196,26 @@ namespace inst::ui {
             baseInstalled[baseTitleId] = installed;
             installedUpdateVersion[baseTitleId] = outVersion;
             return installed;
+        };
+
+        auto isDlcInstalled = [&](const shopInstStuff::ShopItem& item) {
+            if (!IsDlcItem(item))
+                return false;
+
+            std::uint64_t dlcTitleId = 0;
+            if (!resolveItemDlcTitleId(item, dlcTitleId)) {
+                ShopDlcTrace("dlc resolve failed name='%s' appType=%d hasTitleId=%d titleId='%s' hasAppId=%d appId='%s'",
+                    TraceNamePreview(item.name).c_str(), item.appType, item.hasTitleId ? 1 : 0,
+                    item.hasTitleId ? FormatTitleIdHex(item.titleId).c_str() : "none",
+                    item.hasAppId ? 1 : 0, item.hasAppId ? item.appId.c_str() : "none");
+                return false;
+            }
+            if (isDlcInstalledByTitleId(dlcTitleId)) {
+                ShopDlcTrace("dlc installed yes dlcId=%s name='%s'", FormatTitleIdHex(dlcTitleId).c_str(), TraceNamePreview(item.name).c_str());
+                return true;
+            }
+            ShopDlcTrace("dlc installed no dlcId=%s name='%s'", FormatTitleIdHex(dlcTitleId).c_str(), TraceNamePreview(item.name).c_str());
+            return false;
         };
 
         for (auto& section : this->shopSections) {
@@ -874,16 +1228,27 @@ namespace inst::ui {
             filtered.reserve(section.items.size());
             for (const auto& item : section.items) {
                 std::uint32_t installedVersion = 0;
-                if (!isBaseInstalled(item, installedVersion))
+                std::uint64_t baseTitleId = 0;
+                DeriveBaseTitleId(item, baseTitleId);
+                bool baseIsInstalled = true;
+                if (section.id == "updates" || IsUpdateItem(item) || enforceBaseInstallForDlcSection)
+                    baseIsInstalled = isBaseInstalled(item, installedVersion);
+                if ((section.id == "updates" || IsUpdateItem(item) || enforceBaseInstallForDlcSection) && !baseIsInstalled) {
+                    if (section.id == "dlc")
+                        ShopDlcTrace("dlc drop reason=base_not_installed name='%s'", TraceNamePreview(item.name).c_str());
                     continue;
-                if (section.id == "updates" || item.appType == NcmContentMetaType_Patch) {
-                    if (!item.hasAppVersion)
-                        continue;
-                    if (item.appVersion > installedVersion)
+                }
+                if (section.id == "updates" || IsUpdateItem(item)) {
+                    if (!item.hasAppVersion || item.appVersion > installedVersion)
                         filtered.push_back(item);
                 } else {
-                    if (item.hasTitleId && tin::util::IsTitleInstalled(item.titleId))
+                    if (isDlcInstalled(item)) {
+                        if (section.id == "dlc")
+                            ShopDlcTrace("dlc drop reason=already_installed name='%s'", TraceNamePreview(item.name).c_str());
                         continue;
+                    }
+                    if (section.id == "dlc")
+                        ShopDlcTrace("dlc keep name='%s'", TraceNamePreview(item.name).c_str());
                     filtered.push_back(item);
                 }
             }
@@ -901,12 +1266,12 @@ namespace inst::ui {
             std::vector<shopInstStuff::ShopItem> filtered;
             filtered.reserve(section.items.size());
             for (const auto& item : section.items) {
-                if (item.appType != NcmContentMetaType_AddOnContent) {
+                if (!IsDlcItem(item)) {
                     filtered.push_back(item);
                     continue;
                 }
                 std::uint32_t installedVersion = 0;
-                if (item.hasTitleId && tin::util::IsTitleInstalled(item.titleId))
+                if (isDlcInstalled(item))
                     continue;
                 if (isBaseInstalled(item, installedVersion))
                     filtered.push_back(item);
@@ -959,7 +1324,8 @@ namespace inst::ui {
             appendTypeLabels(section);
         }
 
-        ncmExit();
+        if (ncmReady)
+            ncmExit();
         nsExit();
     }
 
@@ -1644,7 +2010,7 @@ namespace inst::ui {
             std::uint64_t baseTitleId = 0;
             if (DeriveBaseTitleId(item, baseTitleId)) {
                 this->selectedItems.erase(std::remove_if(this->selectedItems.begin(), this->selectedItems.end(), [&](const auto& entry) {
-                    if (entry.appType != NcmContentMetaType_Patch)
+                    if (!IsUpdateItem(entry))
                         return false;
                     std::uint64_t updateBaseId = 0;
                     if (!DeriveBaseTitleId(entry, updateBaseId))
@@ -1661,7 +2027,14 @@ namespace inst::ui {
     }
 
     void shopInstPage::startShop(bool forceRefresh) {
+        ResetShopDlcTrace();
+        ShopDlcTrace("startShop begin forceRefresh=%d shopHideInstalled=%d hideInstalledSection=%d", forceRefresh ? 1 : 0, inst::config::shopHideInstalled ? 1 : 0, inst::config::shopHideInstalledSection ? 1 : 0);
+        this->nativeUpdatesSectionPresent = false;
+        this->nativeDlcSectionPresent = false;
         this->descriptionVisible = false;
+        this->descriptionOverlayVisible = false;
+        this->descriptionOverlayLines.clear();
+        this->descriptionOverlayOffset = 0;
         this->setButtonsText("inst.shop.buttons_loading"_lang);
         this->menu->SetVisible(false);
         this->menu->ClearItems();
@@ -1673,6 +2046,10 @@ namespace inst::ui {
         this->gridTitleText->SetVisible(false);
         this->descriptionRect->SetVisible(false);
         this->descriptionText->SetVisible(false);
+        this->descriptionOverlayRect->SetVisible(false);
+        this->descriptionOverlayTitleText->SetVisible(false);
+        this->descriptionOverlayBodyText->SetVisible(false);
+        this->descriptionOverlayHintText->SetVisible(false);
         for (auto& img : this->gridImages)
             img->SetVisible(false);
         for (auto& highlight : this->shopGridSelectHighlights)
@@ -1708,15 +2085,93 @@ namespace inst::ui {
 
         std::string error;
         this->shopSections = shopInstStuff::FetchShopSections(shopUrl, inst::config::shopUser, inst::config::shopPass, error, !forceRefresh);
+        ShopDlcTrace("FetchShopSections done sections=%llu errorLen=%llu", static_cast<unsigned long long>(this->shopSections.size()), static_cast<unsigned long long>(error.size()));
         if (!error.empty()) {
+            ShopDlcTrace("FetchShopSections error: %s", error.c_str());
             mainApp->CreateShowDialog("inst.shop.failed"_lang, error, {"common.ok"_lang}, true);
             mainApp->LoadLayout(mainApp->mainPage);
             return;
         }
         if (this->shopSections.empty()) {
+            ShopDlcTrace("FetchShopSections returned empty sections");
             mainApp->CreateShowDialog("inst.shop.empty"_lang, "", {"common.ok"_lang}, true);
             mainApp->LoadLayout(mainApp->mainPage);
             return;
+        }
+
+        for (const auto& section : this->shopSections) {
+            if (section.id == "updates" || section.id == "update")
+                this->nativeUpdatesSectionPresent = true;
+            if (section.id == "dlc" || section.id == "addon" || section.id == "add-on" || section.id == "add_ons")
+                this->nativeDlcSectionPresent = true;
+            ShopDlcTrace("section-before id='%s' title='%s' items=%llu", section.id.c_str(), section.title.c_str(), static_cast<unsigned long long>(section.items.size()));
+        }
+        ShopDlcTrace("native sections updates=%d dlc=%d", this->nativeUpdatesSectionPresent ? 1 : 0, this->nativeDlcSectionPresent ? 1 : 0);
+
+        if ((this->nativeUpdatesSectionPresent || this->nativeDlcSectionPresent) && !this->shopSections.empty()) {
+            auto normalizeSectionId = [](std::string value) {
+                std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+                    return static_cast<char>(std::tolower(c));
+                });
+                return value;
+            };
+
+            int allIndex = -1;
+            int updatesIndex = -1;
+            int dlcIndex = -1;
+            for (std::size_t i = 0; i < this->shopSections.size(); i++) {
+                const std::string id = normalizeSectionId(this->shopSections[i].id);
+                if (id == "all")
+                    allIndex = static_cast<int>(i);
+                else if (id == "updates" || id == "update")
+                    updatesIndex = static_cast<int>(i);
+                else if (id == "dlc" || id == "addon" || id == "add-on" || id == "add_ons")
+                    dlcIndex = static_cast<int>(i);
+            }
+
+            if (allIndex >= 0) {
+                auto augmentSectionFromAll = [&](int targetIndex, bool (*predicate)(const shopInstStuff::ShopItem&)) {
+                    if (targetIndex < 0 || targetIndex >= static_cast<int>(this->shopSections.size()))
+                        return;
+                    if (targetIndex == allIndex)
+                        return;
+
+                    auto& targetItems = this->shopSections[targetIndex].items;
+                    const auto& allItems = this->shopSections[allIndex].items;
+                    std::unordered_set<std::string> seenKeys;
+                    seenKeys.reserve(targetItems.size() + allItems.size());
+
+                    for (const auto& item : targetItems) {
+                        std::string key = BuildItemIdentityKey(item);
+                        if (key.empty())
+                            key = "name:" + NormalizeSearchKey(item.name);
+                        if (!key.empty())
+                            seenKeys.insert(key);
+                    }
+
+                    for (const auto& item : allItems) {
+                        if (!predicate(item))
+                            continue;
+                        std::string key = BuildItemIdentityKey(item);
+                        if (key.empty())
+                            key = "name:" + NormalizeSearchKey(item.name);
+                        if (!key.empty() && !seenKeys.insert(key).second)
+                            continue;
+                        targetItems.push_back(item);
+                    }
+
+                    std::sort(targetItems.begin(), targetItems.end(), [](const auto& a, const auto& b) {
+                        return inst::util::ignoreCaseCompare(a.name, b.name);
+                    });
+                };
+
+                if (this->nativeUpdatesSectionPresent)
+                    augmentSectionFromAll(updatesIndex, IsUpdateItem);
+                if (this->nativeDlcSectionPresent)
+                    augmentSectionFromAll(dlcIndex, IsDlcItem);
+            } else {
+                ShopDlcTrace("augment skipped: no all section present");
+            }
         }
 
         std::string motd = shopInstStuff::FetchShopMotd(shopUrl, inst::config::shopUser, inst::config::shopPass);
@@ -1725,7 +2180,11 @@ namespace inst::ui {
 
         if (!inst::config::shopHideInstalledSection)
             this->buildInstalledSection();
+        ShopDlcTrace("after buildInstalledSection sections=%llu", static_cast<unsigned long long>(this->shopSections.size()));
+        this->buildLegacyOwnedSections();
+        ShopDlcTrace("after buildLegacyOwnedSections sections=%llu", static_cast<unsigned long long>(this->shopSections.size()));
         this->cacheAvailableUpdates();
+        ShopDlcTrace("after cacheAvailableUpdates availableUpdates=%llu", static_cast<unsigned long long>(this->availableUpdates.size()));
         this->filterOwnedSections();
 
         this->selectedSectionIndex = 0;
@@ -1769,14 +2228,30 @@ namespace inst::ui {
 
             std::vector<shopInstStuff::ShopItem> updatesToAdd;
             std::unordered_map<std::uint64_t, shopInstStuff::ShopItem> latestUpdates;
+            auto shouldReplaceUpdateCandidate = [](const shopInstStuff::ShopItem& current, const shopInstStuff::ShopItem& candidate) {
+                if (candidate.hasAppVersion) {
+                    if (!current.hasAppVersion)
+                        return true;
+                    if (candidate.appVersion > current.appVersion)
+                        return true;
+                    if (candidate.appVersion == current.appVersion && current.url.empty() && !candidate.url.empty())
+                        return true;
+                    return false;
+                }
+                if (current.hasAppVersion)
+                    return false;
+                if (current.url.empty() && !candidate.url.empty())
+                    return true;
+                return false;
+            };
             for (const auto& update : this->availableUpdates) {
-                if (update.appType != NcmContentMetaType_Patch || !update.hasAppVersion)
+                if (!IsUpdateItem(update))
                     continue;
                 std::uint64_t baseTitleId = 0;
                 if (!DeriveBaseTitleId(update, baseTitleId))
                     continue;
                 auto it = latestUpdates.find(baseTitleId);
-                if (it == latestUpdates.end() || update.appVersion > it->second.appVersion)
+                if (it == latestUpdates.end() || shouldReplaceUpdateCandidate(it->second, update))
                     latestUpdates[baseTitleId] = update;
             }
 
@@ -1821,7 +2296,7 @@ namespace inst::ui {
 
                 for (const auto& section : this->shopSections) {
                     for (const auto& item : section.items) {
-                        if (item.appType != NcmContentMetaType_AddOnContent)
+                        if (!IsDlcItem(item))
                             continue;
                         if (item.url.empty())
                             continue;
@@ -1905,6 +2380,28 @@ namespace inst::ui {
         int bottomTapX = 0;
         if (DetectBottomHintTap(Pos, this->bottomHintTouch, 668, 52, bottomTapX)) {
             Down |= FindBottomHintButton(this->bottomHintSegments, bottomTapX);
+        }
+        if (this->descriptionOverlayVisible) {
+            if (Down & (HidNpadButton_B | HidNpadButton_ZL)) {
+                this->closeDescriptionOverlay();
+                return;
+            }
+
+            int delta = 0;
+            if (Down & (HidNpadButton_Up | HidNpadButton_StickLUp))
+                delta = -1;
+            else if (Down & (HidNpadButton_Down | HidNpadButton_StickLDown))
+                delta = 1;
+            else if (Down & HidNpadButton_Left)
+                delta = -(this->descriptionOverlayVisibleLines / 2);
+            else if (Down & HidNpadButton_Right)
+                delta = (this->descriptionOverlayVisibleLines / 2);
+
+            if (delta != 0) {
+                this->scrollDescriptionOverlay(delta);
+                return;
+            }
+            return;
         }
         if (Down & HidNpadButton_B) {
             this->updateRememberedSelection();
@@ -2354,36 +2851,132 @@ namespace inst::ui {
         mainApp->CreateShowDialog(item.name, body, {"common.ok"_lang}, true);
     }
 
-    void shopInstPage::showCurrentDescriptionDialog() {
+    bool shopInstPage::tryGetCurrentDescription(std::string& outTitle, std::string& outDescription) const {
         if (this->visibleItems.empty())
-            return;
+            return false;
 
         int selectedIndex = this->shopGridMode ? this->shopGridIndex : this->menu->GetSelectedIndex();
         if (this->isInstalledSection() && this->shopGridMode)
             selectedIndex = this->gridSelectedIndex;
         if (selectedIndex < 0 || selectedIndex >= static_cast<int>(this->visibleItems.size()))
-            return;
+            return false;
 
         const auto& item = this->visibleItems[selectedIndex];
-        std::string description;
+        outTitle = item.name.empty() ? "Description" : inst::util::shortenString(item.name, 96, true);
+        outDescription.clear();
+
         std::uint64_t baseTitleId = 0;
         if (DeriveBaseTitleId(item, baseTitleId)) {
             inst::offline::TitleMetadata meta;
             if (inst::offline::TryGetMetadata(baseTitleId, meta)) {
                 if (!meta.description.empty())
-                    description = meta.description;
+                    outDescription = meta.description;
                 else if (!meta.intro.empty())
-                    description = meta.intro;
+                    outDescription = meta.intro;
             }
         }
 
-        description = NormalizeDescriptionWhitespace(description);
-        if (description.empty())
-            description = "No description available for this title.";
+        outDescription = NormalizeDescriptionWhitespace(outDescription);
+        if (outDescription.empty())
+            outDescription = "No description available for this title.";
+        return true;
+    }
 
-        const std::string wrapped = WrapDescriptionText(description, 70, 13);
-        std::string title = item.name.empty() ? "Description" : inst::util::shortenString(item.name, 60, true);
-        mainApp->CreateShowDialog(title, wrapped.empty() ? description : wrapped, {"common.close"_lang}, true);
+    void shopInstPage::showCurrentDescriptionDialog() {
+        if (this->descriptionOverlayVisible) {
+            this->closeDescriptionOverlay();
+            return;
+        }
+        this->openDescriptionOverlay();
+    }
+
+    void shopInstPage::openDescriptionOverlay() {
+        std::string title;
+        std::string description;
+        if (!this->tryGetCurrentDescription(title, description))
+            return;
+
+        this->descriptionOverlayLines = WrapDescriptionLines(description, 102);
+        if (this->descriptionOverlayLines.empty())
+            this->descriptionOverlayLines.push_back("No description available for this title.");
+        this->descriptionOverlayOffset = 0;
+        this->descriptionOverlayVisible = true;
+        this->descriptionOverlayTitleText->SetText(title);
+        this->descriptionOverlayRect->SetVisible(true);
+        this->descriptionOverlayTitleText->SetVisible(true);
+        this->descriptionOverlayBodyText->SetVisible(true);
+        this->descriptionOverlayHintText->SetVisible(true);
+        const std::string overlayButtonsText = "B Close    Up/Down Scroll";
+        this->butText->SetText(overlayButtonsText);
+        this->bottomHintSegments = BuildBottomHintSegments(overlayButtonsText, 10, 20);
+        this->refreshDescriptionOverlayBody();
+    }
+
+    void shopInstPage::closeDescriptionOverlay() {
+        this->descriptionOverlayVisible = false;
+        this->descriptionOverlayLines.clear();
+        this->descriptionOverlayOffset = 0;
+        this->descriptionOverlayRect->SetVisible(false);
+        this->descriptionOverlayTitleText->SetVisible(false);
+        this->descriptionOverlayBodyText->SetVisible(false);
+        this->descriptionOverlayHintText->SetVisible(false);
+        this->updateButtonsText();
+    }
+
+    void shopInstPage::scrollDescriptionOverlay(int delta) {
+        if (!this->descriptionOverlayVisible || delta == 0)
+            return;
+        const int lineCount = static_cast<int>(this->descriptionOverlayLines.size());
+        if (lineCount <= this->descriptionOverlayVisibleLines)
+            return;
+        const int maxOffset = lineCount - this->descriptionOverlayVisibleLines;
+        int nextOffset = this->descriptionOverlayOffset + delta;
+        if (nextOffset < 0)
+            nextOffset = 0;
+        if (nextOffset > maxOffset)
+            nextOffset = maxOffset;
+        if (nextOffset == this->descriptionOverlayOffset)
+            return;
+        this->descriptionOverlayOffset = nextOffset;
+        this->refreshDescriptionOverlayBody();
+    }
+
+    void shopInstPage::refreshDescriptionOverlayBody() {
+        if (!this->descriptionOverlayVisible)
+            return;
+
+        const int lineCount = static_cast<int>(this->descriptionOverlayLines.size());
+        if (lineCount <= 0) {
+            this->descriptionOverlayBodyText->SetText("");
+            this->descriptionOverlayHintText->SetText("B Close");
+            return;
+        }
+
+        int start = this->descriptionOverlayOffset;
+        if (start < 0)
+            start = 0;
+        if (start >= lineCount)
+            start = lineCount - 1;
+        int end = start + this->descriptionOverlayVisibleLines;
+        if (end > lineCount)
+            end = lineCount;
+
+        std::string body;
+        for (int i = start; i < end; i++) {
+            if (!body.empty())
+                body.push_back('\n');
+            body += this->descriptionOverlayLines[i];
+        }
+        this->descriptionOverlayBodyText->SetText(body);
+
+        if (lineCount > this->descriptionOverlayVisibleLines) {
+            const int shownStart = start + 1;
+            const int shownEnd = end;
+            this->descriptionOverlayHintText->SetText(
+                "B Close    Up/Down Scroll    " + std::to_string(shownStart) + "-" + std::to_string(shownEnd) + "/" + std::to_string(lineCount));
+        } else {
+            this->descriptionOverlayHintText->SetText("B Close");
+        }
     }
 
     void shopInstPage::updateDescriptionPanel() {

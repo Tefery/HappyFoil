@@ -286,6 +286,7 @@ namespace {
     bool TryParseTitleId(const nlohmann::json& entry, std::uint64_t& out);
     bool TryParseAppVersion(const nlohmann::json& entry, std::uint32_t& out);
     bool TryParseAppType(const nlohmann::json& entry, std::int32_t& out);
+    bool InferAppTypeFromTitleId(std::uint64_t titleId, std::int32_t& out);
 
     bool TryParseHexU64(const std::string& value, std::uint64_t& out)
     {
@@ -299,6 +300,43 @@ namespace {
         return true;
     }
 
+    bool TryParseTitleIdText(const std::string& value, std::uint64_t& out)
+    {
+        const auto start = value.find_first_not_of(" \t\r\n");
+        if (start == std::string::npos)
+            return false;
+        const auto end = value.find_last_not_of(" \t\r\n");
+        std::string text = value.substr(start, (end - start) + 1);
+
+        if (text.rfind("0x", 0) == 0 || text.rfind("0X", 0) == 0)
+            text = text.substr(2);
+
+        bool hasHexLetters = false;
+        bool allDigits = !text.empty();
+        for (unsigned char c : text) {
+            if (!std::isxdigit(c))
+                return false;
+            if (std::isalpha(c))
+                hasHexLetters = true;
+            if (!std::isdigit(c))
+                allDigits = false;
+        }
+
+        if (hasHexLetters || text.size() == 16)
+            return TryParseHexU64(text, out);
+
+        if (allDigits) {
+            char* end = nullptr;
+            unsigned long long parsed = std::strtoull(text.c_str(), &end, 10);
+            if (end == text.c_str() || (end && *end != '\0'))
+                return false;
+            out = static_cast<std::uint64_t>(parsed);
+            return true;
+        }
+
+        return false;
+    }
+
     bool TryParseTitleId(const nlohmann::json& entry, std::uint64_t& out)
     {
         if (!entry.contains("title_id"))
@@ -309,10 +347,7 @@ namespace {
             return true;
         }
         if (value.is_string()) {
-            std::string text = value.get<std::string>();
-            text.erase(0, text.find_first_not_of(" \t\r\n"));
-            text.erase(text.find_last_not_of(" \t\r\n") + 1);
-            return TryParseHexU64(text, out);
+            return TryParseTitleIdText(value.get<std::string>(), out);
         }
         return false;
     }
@@ -440,20 +475,10 @@ namespace {
 
     bool InferAppTypeFromAppId(const std::string& appId, std::int32_t& out)
     {
-        std::string normalized = NormalizeHexString(appId);
-        if (normalized.size() < 3)
+        std::uint64_t parsedTitleId = 0;
+        if (!TryParseTitleIdText(appId, parsedTitleId))
             return false;
-        const std::string suffix = normalized.substr(normalized.size() - 3);
-        if (suffix == "800") {
-            out = NcmContentMetaType_Patch;
-            return true;
-        }
-        if (suffix == "000") {
-            out = NcmContentMetaType_Application;
-            return true;
-        }
-        out = NcmContentMetaType_AddOnContent;
-        return true;
+        return InferAppTypeFromTitleId(parsedTitleId, out);
     }
 
     bool InferAppTypeFromTitleId(std::uint64_t titleId, std::int32_t& out)
@@ -473,19 +498,7 @@ namespace {
 
     bool TryParseTitleIdFromAppId(const std::string& appId, std::uint64_t& out)
     {
-        if (appId.empty())
-            return false;
-        std::string text = appId;
-        const auto start = text.find_first_not_of(" \t\r\n");
-        if (start == std::string::npos)
-            return false;
-        const auto end = text.find_last_not_of(" \t\r\n");
-        text = text.substr(start, (end - start) + 1);
-        if (text.rfind("0x", 0) == 0 || text.rfind("0X", 0) == 0)
-            text = text.substr(2);
-        if (text.size() != 16)
-            return false;
-        return TryParseHexU64(text, out);
+        return TryParseTitleIdText(appId, out);
     }
 
     std::string TrimAscii(const std::string& value)
