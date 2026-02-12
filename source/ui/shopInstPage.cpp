@@ -15,6 +15,7 @@
 #include "util/curl.hpp"
 #include "util/lang.hpp"
 #include "util/offline_title_db.hpp"
+#include "util/save_sync.hpp"
 #include "util/title_util.hpp"
 #include "util/util.hpp"
 #include "ui/bottomHint.hpp"
@@ -806,6 +807,17 @@ namespace inst::ui {
         return this->shopSections[this->selectedSectionIndex].id == "installed";
     }
 
+    bool shopInstPage::isSaveSyncSection() const {
+        if (!this->saveSyncEnabled)
+            return false;
+        if (this->shopSections.empty())
+            return false;
+        if (this->selectedSectionIndex < 0 || this->selectedSectionIndex >= (int)this->shopSections.size())
+            return false;
+        const std::string id = this->shopSections[this->selectedSectionIndex].id;
+        return id == "saves" || id == "save";
+    }
+
     const std::vector<shopInstStuff::ShopItem>& shopInstPage::getCurrentItems() const {
         static const std::vector<shopInstStuff::ShopItem> empty;
         if (this->shopSections.empty())
@@ -839,7 +851,9 @@ namespace inst::ui {
     }
 
     void shopInstPage::updateButtonsText() {
-        if (this->isInstalledSection())
+        if (this->isSaveSyncSection())
+            this->setButtonsText(" Manage Save     Refresh    / Section     Cancel");
+        else if (this->isInstalledSection())
             this->setButtonsText("inst.shop.buttons_installed"_lang);
         else
             this->setButtonsText("inst.shop.buttons_all"_lang);
@@ -917,6 +931,135 @@ namespace inst::ui {
         installedSection.title = "Installed";
         installedSection.items = std::move(installedItems);
         this->shopSections.insert(this->shopSections.begin(), std::move(installedSection));
+    }
+
+    void shopInstPage::buildSaveSyncSection(const std::string& shopUrl) {
+        this->saveSyncEntries.clear();
+
+        auto normalizeSectionId = [](std::string value) {
+            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+            });
+            return value;
+        };
+
+        std::vector<shopInstStuff::ShopItem> remoteSaveItems;
+        std::vector<shopInstStuff::ShopSection> retainedSections;
+        retainedSections.reserve(this->shopSections.size());
+        for (auto& section : this->shopSections) {
+            const std::string id = normalizeSectionId(section.id);
+            if (id == "saves" || id == "save" || id == "savegames" || id == "save_games" || id == "save-game") {
+                remoteSaveItems.insert(remoteSaveItems.end(), section.items.begin(), section.items.end());
+                continue;
+            }
+            retainedSections.push_back(std::move(section));
+        }
+        this->shopSections = std::move(retainedSections);
+
+        std::vector<shopInstStuff::ShopItem> apiRemoteSaveItems;
+        std::string remoteFetchWarning;
+        if (!inst::save_sync::FetchRemoteSaveItems(shopUrl, inst::config::shopUser, inst::config::shopPass, apiRemoteSaveItems, remoteFetchWarning)) {
+            if (!remoteFetchWarning.empty())
+                ShopDlcTrace("save sync disabled: %s", remoteFetchWarning.c_str());
+            this->saveSyncEnabled = false;
+            return;
+        }
+        if (!apiRemoteSaveItems.empty()) {
+            remoteSaveItems.insert(remoteSaveItems.end(), apiRemoteSaveItems.begin(), apiRemoteSaveItems.end());
+        }
+
+        std::string warning;
+        inst::save_sync::BuildEntries(remoteSaveItems, this->saveSyncEntries, warning);
+        if (!warning.empty())
+            ShopDlcTrace("save sync warning: %s", warning.c_str());
+        if (this->saveSyncEntries.empty())
+            return;
+
+        shopInstStuff::ShopSection saveSection;
+        saveSection.id = "saves";
+        saveSection.title = "Saves";
+        saveSection.items.reserve(this->saveSyncEntries.size());
+        for (const auto& entry : this->saveSyncEntries) {
+            shopInstStuff::ShopItem item;
+            item.name = entry.titleName;
+            if (entry.localAvailable && entry.remoteAvailable)
+                item.name += " [Console + Server]";
+            else if (entry.localAvailable)
+                item.name += " [Console]";
+            else if (entry.remoteAvailable)
+                item.name += " [Server]";
+            item.url = entry.remoteDownloadUrl;
+            item.size = entry.remoteSize;
+            item.titleId = entry.titleId;
+            item.hasTitleId = true;
+            saveSection.items.push_back(std::move(item));
+        }
+
+        this->shopSections.push_back(std::move(saveSection));
+    }
+
+    void shopInstPage::handleSaveSyncAction(int selectedIndex) {
+        if (selectedIndex < 0 || selectedIndex >= static_cast<int>(this->visibleItems.size()))
+            return;
+        const auto& selectedItem = this->visibleItems[selectedIndex];
+        if (!selectedItem.hasTitleId)
+            return;
+
+        auto it = std::find_if(this->saveSyncEntries.begin(), this->saveSyncEntries.end(), [&](const auto& entry) {
+            return entry.titleId == selectedItem.titleId;
+        });
+        if (it == this->saveSyncEntries.end()) {
+            mainApp->CreateShowDialog("Save Sync", "Unable to resolve save entry.", {"common.ok"_lang}, true);
+            return;
+        }
+
+        std::vector<std::string> options;
+        std::vector<int> actions;
+        if (it->localAvailable) {
+            options.push_back("Upload to server");
+            actions.push_back(1);
+        }
+        if (it->remoteAvailable) {
+            options.push_back("Download to console");
+            actions.push_back(2);
+        }
+        if (actions.empty()) {
+            mainApp->CreateShowDialog("Save Sync", "No local or remote save is available for this title.", {"common.ok"_lang}, true);
+            return;
+        }
+        options.push_back("common.cancel"_lang);
+
+        int choice = mainApp->CreateShowDialog("Save Sync", it->titleName, options, false);
+        if (choice < 0 || choice >= static_cast<int>(actions.size()))
+            return;
+
+        if (actions[choice] == 2 && it->localAvailable) {
+            const int overwriteChoice = mainApp->CreateShowDialog(
+                "Save Sync",
+                "Replace local save data with the server copy?",
+                {"common.yes"_lang, "common.no"_lang},
+                false);
+            if (overwriteChoice != 0)
+                return;
+        }
+
+        std::string error;
+        bool ok = false;
+        if (actions[choice] == 1) {
+            ok = inst::save_sync::UploadSaveToServer(this->activeShopUrl, inst::config::shopUser, inst::config::shopPass, *it, error);
+        } else if (actions[choice] == 2) {
+            ok = inst::save_sync::DownloadSaveToConsole(this->activeShopUrl, inst::config::shopUser, inst::config::shopPass, *it, error);
+        }
+
+        if (!ok) {
+            if (error.empty())
+                error = "Save sync failed.";
+            mainApp->CreateShowDialog("Save Sync", error, {"common.ok"_lang}, true);
+            return;
+        }
+
+        mainApp->CreateShowDialog("Save Sync", actions[choice] == 1 ? "Save uploaded successfully." : "Save downloaded successfully.", {"common.ok"_lang}, true);
+        this->startShop(true);
     }
 
     void shopInstPage::buildLegacyOwnedSections() {
@@ -1283,7 +1426,8 @@ namespace inst::ui {
             for (auto& section : this->shopSections) {
                 if (section.items.empty())
                     continue;
-                if (section.id == "installed" || section.id == "updates" || section.id == "update")
+                if (section.id == "installed" || section.id == "updates" || section.id == "update" ||
+                    (this->saveSyncEnabled && (section.id == "saves" || section.id == "save")))
                     continue;
 
                 std::vector<shopInstStuff::ShopItem> filtered;
@@ -1587,6 +1731,11 @@ namespace inst::ui {
                 CenterTextX(this->emptySectionText);
                 this->emptySectionText->SetY(350);
                 this->emptySectionText->SetVisible(true);
+            } else if (section.id == "saves" || section.id == "save") {
+                this->emptySectionText->SetText("No saves available.");
+                CenterTextX(this->emptySectionText);
+                this->emptySectionText->SetY(350);
+                this->emptySectionText->SetVisible(true);
             }
         }
 
@@ -1630,6 +1779,7 @@ namespace inst::ui {
         };
 
         const bool installedSection = this->isInstalledSection();
+        const bool saveSyncSection = this->isSaveSyncSection();
         for (const auto& item : this->visibleItems) {
             std::string sizeText = formatSize(item.size);
             std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
@@ -1644,7 +1794,7 @@ namespace inst::ui {
             std::string itm = inst::util::shortenString(item.name, nameLimit, true) + suffix;
             auto entry = pu::ui::elm::MenuItem::New(itm);
             entry->SetColor(COLOR("#FFFFFFFF"));
-            if (!installedSection) {
+            if (!installedSection && !saveSyncSection) {
                 entry->SetIcon("romfs:/images/icons/checkbox-blank-outline.png");
                 for (const auto& selected : this->selectedItems) {
                     if (selected.url == item.url) {
@@ -2002,6 +2152,8 @@ namespace inst::ui {
     }
 
     void shopInstPage::selectTitle(int selectedIndex) {
+        if (this->isSaveSyncSection())
+            return;
         if (selectedIndex < 0 || selectedIndex >= (int)this->visibleItems.size())
             return;
         const auto& item = this->visibleItems[selectedIndex];
@@ -2040,6 +2192,7 @@ namespace inst::ui {
         ShopDlcTrace("startShop begin forceRefresh=%d shopHideInstalled=%d hideInstalledSection=%d", forceRefresh ? 1 : 0, inst::config::shopHideInstalled ? 1 : 0, inst::config::shopHideInstalledSection ? 1 : 0);
         this->nativeUpdatesSectionPresent = false;
         this->nativeDlcSectionPresent = false;
+        this->saveSyncEnabled = false;
         this->descriptionVisible = false;
         this->descriptionOverlayVisible = false;
         this->descriptionOverlayLines.clear();
@@ -2069,6 +2222,8 @@ namespace inst::ui {
         this->visibleItems.clear();
         this->shopSections.clear();
         this->availableUpdates.clear();
+        this->saveSyncEntries.clear();
+        this->activeShopUrl.clear();
         this->searchQuery.clear();
         this->previewKey.clear();
         this->pageInfoText->SetText("inst.shop.loading"_lang);
@@ -2091,10 +2246,14 @@ namespace inst::ui {
             inst::config::shopUrl = shopUrl;
             inst::config::setConfig();
         }
+        this->activeShopUrl = shopUrl;
 
         std::string error;
-        this->shopSections = shopInstStuff::FetchShopSections(shopUrl, inst::config::shopUser, inst::config::shopPass, error, !forceRefresh);
+        bool usedLegacyFallback = false;
+        this->shopSections = shopInstStuff::FetchShopSections(shopUrl, inst::config::shopUser, inst::config::shopPass, error, !forceRefresh, &usedLegacyFallback);
+        this->saveSyncEnabled = !usedLegacyFallback;
         ShopDlcTrace("FetchShopSections done sections=%llu errorLen=%llu", static_cast<unsigned long long>(this->shopSections.size()), static_cast<unsigned long long>(error.size()));
+        ShopDlcTrace("save sync eligibility legacyFallback=%d enabled=%d", usedLegacyFallback ? 1 : 0, this->saveSyncEnabled ? 1 : 0);
         if (!error.empty()) {
             ShopDlcTrace("FetchShopSections error: %s", error.c_str());
             mainApp->CreateShowDialog("inst.shop.failed"_lang, error, {"common.ok"_lang}, true);
@@ -2195,6 +2354,8 @@ namespace inst::ui {
         this->cacheAvailableUpdates();
         ShopDlcTrace("after cacheAvailableUpdates availableUpdates=%llu", static_cast<unsigned long long>(this->availableUpdates.size()));
         this->filterOwnedSections();
+        if (this->saveSyncEnabled)
+            this->buildSaveSyncSection(shopUrl);
 
         this->selectedSectionIndex = 0;
         for (size_t i = 0; i < this->shopSections.size(); i++) {
@@ -2453,10 +2614,10 @@ namespace inst::ui {
         }
         if (this->shopGridMode) {
             if (Down & HidNpadButton_Plus) {
-                if (!this->isInstalledSection() && !this->visibleItems.empty() && this->selectedItems.empty()) {
+                if (!this->isInstalledSection() && !this->isSaveSyncSection() && !this->visibleItems.empty() && this->selectedItems.empty()) {
                     this->selectTitle(this->shopGridIndex);
                 }
-                if (!this->isInstalledSection() && !this->selectedItems.empty())
+                if (!this->isInstalledSection() && !this->isSaveSyncSection() && !this->selectedItems.empty())
                     this->startInstall();
             }
             if (Down & HidNpadButton_X) {
@@ -2543,6 +2704,8 @@ namespace inst::ui {
                     if (this->isInstalledSection()) {
                         this->gridSelectedIndex = this->shopGridIndex;
                         this->showInstalledDetails();
+                    } else if (this->isSaveSyncSection()) {
+                        this->handleSaveSyncAction(this->shopGridIndex);
                     } else {
                         this->selectTitle(this->shopGridIndex);
                         if (this->visibleItems.size() == 1 && this->selectedItems.size() == 1) {
@@ -2612,6 +2775,8 @@ namespace inst::ui {
                     if (this->isInstalledSection()) {
                         this->gridSelectedIndex = this->shopGridIndex;
                         this->showInstalledDetails();
+                    } else if (this->isSaveSyncSection()) {
+                        this->handleSaveSyncAction(this->shopGridIndex);
                     } else {
                         this->selectTitle(this->shopGridIndex);
                         if (this->visibleItems.size() == 1 && this->selectedItems.size() == 1) {
@@ -2628,6 +2793,8 @@ namespace inst::ui {
         if ((Down & HidNpadButton_A) || (Up & TouchPseudoKey)) {
             if (this->isInstalledSection()) {
                 this->showInstalledDetails();
+            } else if (this->isSaveSyncSection()) {
+                this->handleSaveSyncAction(this->menu->GetSelectedIndex());
             } else {
                 this->selectTitle(this->menu->GetSelectedIndex());
                 if (this->menu->GetItems().size() == 1 && this->selectedItems.size() == 1) {
@@ -2670,7 +2837,7 @@ namespace inst::ui {
             this->drawMenuItems(false);
         }
         if (Down & HidNpadButton_Y) {
-            if (!this->isInstalledSection()) {
+            if (!this->isInstalledSection() && !this->isSaveSyncSection()) {
                 if (this->selectedItems.size() == this->menu->GetItems().size()) {
                     this->drawMenuItems(true);
                 } else {
@@ -2686,7 +2853,7 @@ namespace inst::ui {
             this->startShop(true);
         }
         if (Down & HidNpadButton_Plus) {
-            if (!this->isInstalledSection()) {
+            if (!this->isInstalledSection() && !this->isSaveSyncSection()) {
                 if (this->selectedItems.empty()) {
                     this->selectTitle(this->menu->GetSelectedIndex());
                 }

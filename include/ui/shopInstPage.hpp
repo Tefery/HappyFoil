@@ -3,6 +3,7 @@
 #include <pu/Plutonium>
 #include "shopInstall.hpp"
 #include "ui/bottomHint.hpp"
+#include "util/save_sync.hpp"
 #include <vector>
 
 using namespace pu::ui::elm;
@@ -40,8 +41,11 @@ namespace inst::ui {
             std::vector<shopInstStuff::ShopItem> selectedItems;
             std::vector<shopInstStuff::ShopItem> visibleItems;
             std::vector<shopInstStuff::ShopItem> availableUpdates;
+            std::vector<inst::save_sync::SaveSyncEntry> saveSyncEntries;
             bool nativeUpdatesSectionPresent = false;
             bool nativeDlcSectionPresent = false;
+            bool saveSyncEnabled = false;
+            std::string activeShopUrl;
             BottomHintTouchState bottomHintTouch;
             std::vector<BottomHintSegment> bottomHintSegments;
             int selectedSectionIndex = 0;
@@ -108,7 +112,10 @@ namespace inst::ui {
             const std::vector<shopInstStuff::ShopItem>& getCurrentItems() const;
             bool isAllSection() const;
             bool isInstalledSection() const;
+            bool isSaveSyncSection() const;
             void showInstalledDetails();
+            void buildSaveSyncSection(const std::string& shopUrl);
+            void handleSaveSyncAction(int selectedIndex);
             void showCurrentDescriptionDialog();
             bool tryGetCurrentDescription(std::string& outTitle, std::string& outDescription) const;
             void openDescriptionOverlay();

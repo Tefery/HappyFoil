@@ -1022,10 +1022,12 @@ namespace shopInstStuff {
         return items;
     }
 
-    std::vector<ShopSection> FetchShopSections(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, bool allowCache)
+    std::vector<ShopSection> FetchShopSections(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, bool allowCache, bool* outUsedLegacyFallback)
     {
         std::vector<ShopSection> sections;
         error.clear();
+        if (outUsedLegacyFallback)
+            *outUsedLegacyFallback = false;
 
         std::string baseUrl = NormalizeShopUrl(shopUrl);
         if (baseUrl.empty()) {
@@ -1036,6 +1038,8 @@ namespace shopInstStuff {
         std::string sectionsUrl = baseUrl + "/api/shop/sections";
         FetchResult fetch = FetchShopResponse(sectionsUrl, user, pass);
         if (fetch.responseCode == 404) {
+            if (outUsedLegacyFallback)
+                *outUsedLegacyFallback = true;
             std::vector<ShopItem> items = FetchShop(shopUrl, user, pass, error);
             if (!items.empty()) {
                 sections.push_back({"all", "All", items});
