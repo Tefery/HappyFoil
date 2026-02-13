@@ -4,6 +4,7 @@
 #include "shopInstall.hpp"
 #include "ui/bottomHint.hpp"
 #include "util/save_sync.hpp"
+#include <cstddef>
 #include <vector>
 
 using namespace pu::ui::elm;
@@ -17,6 +18,7 @@ namespace inst::ui {
             void startInstall();
             void onInput(u64 Down, u64 Up, u64 Held, pu::ui::Touch Pos);
             TextBlock::Ref pageInfoText;
+            TextBlock::Ref loadingProgressText;
             Image::Ref titleImage;
             TextBlock::Ref appVersionText;
             TextBlock::Ref timeText;
@@ -76,10 +78,17 @@ namespace inst::ui {
             int holdDirection = 0;
             u64 holdStartTick = 0;
             u64 lastHoldTick = 0;
+            int listMarqueeIndex = -1;
+            std::size_t listMarqueeOffset = 0;
+            u64 listMarqueeLastTick = 0;
+            u64 listMarqueePauseUntilTick = 0;
+            bool listMarqueeBaseHidden = false;
             bool touchActive = false;
             bool touchMoved = false;
             u64 imageLoadingUntilTick = 0;
             TextBlock::Ref butText;
+            Rectangle::Ref loadingBarBack;
+            Rectangle::Ref loadingBarFill;
             Rectangle::Ref topRect;
             Rectangle::Ref infoRect;
             Rectangle::Ref botRect;
@@ -92,8 +101,10 @@ namespace inst::ui {
             std::vector<Image::Ref> shopGridSelectIcons;
             TextBlock::Ref gridTitleText;
             TextBlock::Ref imageLoadingText;
+            Rectangle::Ref listMarqueeMaskRect;
             TextBlock::Ref debugText;
             TextBlock::Ref emptySectionText;
+            TextBlock::Ref listMarqueeOverlayText;
             TextBlock::Ref searchInfoText;
             Rectangle::Ref descriptionRect;
             TextBlock::Ref descriptionText;
@@ -107,12 +118,15 @@ namespace inst::ui {
             TextBlock::Ref saveVersionSelectorHintText;
             pu::ui::elm::Menu::Ref saveVersionSelectorMenu;
             void centerPageInfoText();
+            void setLoadingProgress(int percent, bool visible);
             void drawMenuItems(bool clearItems);
             void selectTitle(int selectedIndex);
             void updateRememberedSelection();
             void updateSectionText();
             void updateButtonsText();
             void setButtonsText(const std::string& text);
+            std::string buildListMenuLabel(const shopInstStuff::ShopItem& item, bool selected) const;
+            void updateListMarquee(bool force);
             void buildInstalledSection();
             void buildLegacyOwnedSections();
             void cacheAvailableUpdates();

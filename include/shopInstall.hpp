@@ -1,10 +1,13 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
 namespace shopInstStuff {
+    using ShopFetchProgressCallback = std::function<void(std::uint64_t downloaded, std::uint64_t total)>;
+
     struct ShopItem {
         std::string name;
         std::string url;
@@ -30,8 +33,8 @@ namespace shopInstStuff {
         std::vector<ShopItem> items;
     };
 
-    std::vector<ShopItem> FetchShop(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error);
-    std::vector<ShopSection> FetchShopSections(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, bool allowCache = true, bool* outUsedLegacyFallback = nullptr);
+    std::vector<ShopItem> FetchShop(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, const ShopFetchProgressCallback& progressCb = ShopFetchProgressCallback());
+    std::vector<ShopSection> FetchShopSections(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, bool allowCache = true, bool* outUsedLegacyFallback = nullptr, const ShopFetchProgressCallback& progressCb = ShopFetchProgressCallback());
     void ResetShopIconCache(const std::string& shopUrl);
     std::string FetchShopMotd(const std::string& shopUrl, const std::string& user, const std::string& pass);
     void installTitleShop(const std::vector<ShopItem>& items, int storage, const std::string& sourceLabel);

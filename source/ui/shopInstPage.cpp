@@ -529,6 +529,34 @@ namespace {
         return inst::util::shortenString(item.name, nameLimit, true) + suffix;
     }
 
+    std::string BuildMarqueeWindow(const std::string& text, std::size_t offset, int windowChars)
+    {
+        if (windowChars <= 0)
+            return std::string();
+        if (text.empty())
+            return std::string();
+        const std::size_t window = static_cast<std::size_t>(windowChars);
+        if (text.size() <= window)
+            return text;
+
+        const std::string padded = text + "   ";
+        const std::size_t cycle = padded.size();
+        if (cycle == 0)
+            return text;
+        offset %= cycle;
+
+        std::string out;
+        out.reserve(window);
+        std::size_t idx = offset;
+        for (std::size_t i = 0; i < window; i++) {
+            out.push_back(padded[idx]);
+            idx++;
+            if (idx >= cycle)
+                idx = 0;
+        }
+        return out;
+    }
+
     std::string NormalizeDescriptionWhitespace(const std::string& text)
     {
         std::string out;
@@ -669,6 +697,13 @@ namespace inst::ui {
         this->batteryCap = Rectangle::New(0, 0, 3, 6, COLOR("#FFFFFF66"));
         this->pageInfoText = TextBlock::New(10, 81, "", 34);
         this->pageInfoText->SetColor(COLOR("#FFFFFFFF"));
+        this->loadingProgressText = TextBlock::New(0, 548, "", 18);
+        this->loadingProgressText->SetColor(COLOR("#FFFFFFFF"));
+        this->loadingProgressText->SetVisible(false);
+        this->loadingBarBack = Rectangle::New(390, 575, 500, 10, COLOR("#FFFFFF33"));
+        this->loadingBarBack->SetVisible(false);
+        this->loadingBarFill = Rectangle::New(390, 575, 0, 10, COLOR("#34C759FF"));
+        this->loadingBarFill->SetVisible(false);
         this->searchInfoText = TextBlock::New(0, 91, "", 20);
         this->searchInfoText->SetColor(COLOR("#FFFFFFFF"));
         this->searchInfoText->SetVisible(false);
@@ -719,6 +754,11 @@ namespace inst::ui {
         this->imageLoadingText = TextBlock::New(0, 98, "Fetching images...", 18);
         this->imageLoadingText->SetColor(COLOR("#FFFFFFFF"));
         this->imageLoadingText->SetVisible(false);
+        this->listMarqueeMaskRect = Rectangle::New(0, 0, 0, 0, this->menu->GetOnFocusColor());
+        this->listMarqueeMaskRect->SetVisible(false);
+        this->listMarqueeOverlayText = TextBlock::New(0, 0, "", 22);
+        this->listMarqueeOverlayText->SetColor(COLOR("#FFFFFFFF"));
+        this->listMarqueeOverlayText->SetVisible(false);
         this->debugText = TextBlock::New(10, 620, "", 18);
         this->debugText->SetColor(COLOR("#FFFFFFFF"));
         this->debugText->SetVisible(false);
@@ -785,6 +825,9 @@ namespace inst::ui {
         this->Add(this->ipText);
         this->Add(this->butText);
         this->Add(this->pageInfoText);
+        this->Add(this->loadingProgressText);
+        this->Add(this->loadingBarBack);
+        this->Add(this->loadingBarFill);
         this->Add(this->searchInfoText);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
@@ -801,6 +844,8 @@ namespace inst::ui {
         this->Add(this->gridHighlight);
         this->Add(this->gridTitleText);
         this->Add(this->imageLoadingText);
+        this->Add(this->listMarqueeMaskRect);
+        this->Add(this->listMarqueeOverlayText);
         this->Add(this->debugText);
         this->Add(this->emptySectionText);
         this->Add(this->descriptionRect);
@@ -873,6 +918,164 @@ namespace inst::ui {
         } else {
             this->searchInfoText->SetVisible(false);
         }
+    }
+
+    void shopInstPage::setLoadingProgress(int percent, bool visible)
+    {
+        if (percent < 0)
+            percent = 0;
+        if (percent > 100)
+            percent = 100;
+
+        this->loadingProgressText->SetVisible(visible);
+        this->loadingBarBack->SetVisible(visible);
+        this->loadingBarFill->SetVisible(visible);
+        if (!visible)
+            return;
+
+        this->loadingProgressText->SetText("inst.shop.loading"_lang + " " + std::to_string(percent) + "%");
+        CenterTextX(this->loadingProgressText);
+        this->loadingBarFill->SetWidth((500 * percent) / 100);
+    }
+
+    std::string shopInstPage::buildListMenuLabel(const shopInstStuff::ShopItem& item, bool selected) const
+    {
+        std::string sizeText = FormatSizeText(item.size);
+        std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
+        int nameLimit = 56;
+        if (!suffix.empty()) {
+            int maxSuffix = static_cast<int>(suffix.size()) + 1;
+            if (nameLimit > maxSuffix)
+                nameLimit -= maxSuffix;
+        }
+        if (nameLimit < 8)
+            nameLimit = 8;
+
+        if (!selected || item.name.size() <= static_cast<std::size_t>(nameLimit))
+            return inst::util::shortenString(item.name, nameLimit, true) + suffix;
+
+        return BuildMarqueeWindow(item.name, this->listMarqueeOffset, nameLimit) + suffix;
+    }
+
+    void shopInstPage::updateListMarquee(bool force)
+    {
+        if (this->shopGridMode || !this->menu->IsVisible()) {
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
+            this->listMarqueeBaseHidden = false;
+            return;
+        }
+        auto& items = this->menu->GetItems();
+        if (items.empty() || this->visibleItems.empty()) {
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
+            this->listMarqueeBaseHidden = false;
+            return;
+        }
+
+        int selectedIndex = this->menu->GetSelectedIndex();
+        if (selectedIndex < 0 || selectedIndex >= static_cast<int>(this->visibleItems.size())) {
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
+            this->listMarqueeBaseHidden = false;
+            return;
+        }
+
+        const u64 now = armGetSystemTick();
+        const u64 freq = armGetSystemTickFreq();
+        const u64 stepTicks = (freq * 110) / 1000;
+        const u64 edgePauseTicks = (freq * 700) / 1000;
+
+        if (this->listMarqueeIndex != selectedIndex) {
+            this->listMarqueeIndex = selectedIndex;
+            this->listMarqueeOffset = 0;
+            this->listMarqueeLastTick = now;
+            this->listMarqueePauseUntilTick = now + edgePauseTicks;
+            force = true;
+        }
+
+        const auto& item = this->visibleItems[static_cast<std::size_t>(selectedIndex)];
+        std::string sizeText = FormatSizeText(item.size);
+        std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
+        int nameLimit = 56;
+        if (!suffix.empty()) {
+            int maxSuffix = static_cast<int>(suffix.size()) + 1;
+            if (nameLimit > maxSuffix)
+                nameLimit -= maxSuffix;
+        }
+        if (nameLimit < 8)
+            nameLimit = 8;
+
+        const bool shouldScroll = item.name.size() > static_cast<std::size_t>(nameLimit);
+        if (!shouldScroll) {
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
+            if (this->listMarqueeBaseHidden) {
+                for (std::size_t i = 0; i < items.size() && i < this->visibleItems.size(); i++)
+                    items[i]->SetName(this->buildListMenuLabel(this->visibleItems[i], false));
+                this->menu->RefreshRenderCache();
+                this->listMarqueeBaseHidden = false;
+            }
+            this->listMarqueeOffset = 0;
+            return;
+        }
+        if (shouldScroll && now >= this->listMarqueePauseUntilTick && (force || (now - this->listMarqueeLastTick) >= stepTicks)) {
+            const std::size_t cycle = item.name.size() + 3;
+            if (cycle > 0) {
+                this->listMarqueeOffset = (this->listMarqueeOffset + 1) % cycle;
+                if (this->listMarqueeOffset == 0)
+                    this->listMarqueePauseUntilTick = now + edgePauseTicks;
+            }
+            this->listMarqueeLastTick = now;
+            force = true;
+        } else if (!shouldScroll && this->listMarqueeOffset != 0) {
+            this->listMarqueeOffset = 0;
+            force = true;
+        }
+
+        int visibleCount = this->menu->GetNumberOfItemsToShow();
+        if (visibleCount < 1)
+            visibleCount = 1;
+        int topIndex = this->menu->GetFirstVisibleIndex();
+        if (topIndex < 0)
+            topIndex = 0;
+        int row = selectedIndex - topIndex;
+        if (row < 0 || row >= visibleCount) {
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
+            if (this->listMarqueeBaseHidden) {
+                for (std::size_t i = 0; i < items.size() && i < this->visibleItems.size(); i++)
+                    items[i]->SetName(this->buildListMenuLabel(this->visibleItems[i], false));
+                this->menu->RefreshRenderCache();
+                this->listMarqueeBaseHidden = false;
+            }
+            return;
+        }
+
+        if (!this->listMarqueeBaseHidden || force) {
+            for (std::size_t i = 0; i < items.size() && i < this->visibleItems.size(); i++) {
+                std::string label = this->buildListMenuLabel(this->visibleItems[i], false);
+                if (static_cast<int>(i) == selectedIndex)
+                    label.clear();
+                items[i]->SetName(label);
+            }
+            this->menu->RefreshRenderCache();
+            this->listMarqueeBaseHidden = true;
+        }
+
+        std::string label = BuildMarqueeWindow(item.name, this->listMarqueeOffset, nameLimit) + suffix;
+        this->listMarqueeOverlayText->SetText(label);
+        const int itemHeight = this->menu->GetItemSize();
+        const int menuX = this->menu->GetProcessedX();
+        const int menuW = this->menu->GetWidth();
+        const int textY = this->menu->GetProcessedY() + (row * itemHeight) + ((itemHeight - this->listMarqueeOverlayText->GetTextHeight()) / 2);
+        int textX = menuX + 25;
+        if (!this->isInstalledSection() && !this->isSaveSyncSection())
+            textX = menuX + 76;
+        this->listMarqueeMaskRect->SetVisible(false);
+        this->listMarqueeOverlayText->SetX(textX);
+        this->listMarqueeOverlayText->SetY(textY);
+        this->listMarqueeOverlayText->SetVisible(true);
     }
 
     void shopInstPage::updateButtonsText() {
@@ -2049,6 +2252,8 @@ namespace inst::ui {
     void shopInstPage::drawMenuItems(bool clearItems) {
         if (clearItems) this->selectedItems.clear();
         this->emptySectionText->SetVisible(false);
+        this->listMarqueeMaskRect->SetVisible(false);
+        this->listMarqueeOverlayText->SetVisible(false);
         this->menu->ClearItems();
         this->visibleItems.clear();
         const auto& items = this->getCurrentItems();
@@ -2082,6 +2287,8 @@ namespace inst::ui {
             this->menu->SetVisible(false);
             this->previewImage->SetVisible(false);
             this->emptySectionText->SetVisible(false);
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
             if (this->gridSelectedIndex >= (int)this->visibleItems.size())
                 this->gridSelectedIndex = 0;
             this->updateInstalledGrid();
@@ -2090,6 +2297,8 @@ namespace inst::ui {
         }
 
         if (this->shopGridMode) {
+            this->listMarqueeMaskRect->SetVisible(false);
+            this->listMarqueeOverlayText->SetVisible(false);
             this->updateShopGrid();
             this->updateDescriptionPanel();
             return;
@@ -2102,35 +2311,11 @@ namespace inst::ui {
         for (auto& icon : this->shopGridSelectIcons)
             icon->SetVisible(false);
         this->menu->SetVisible(true);
-        auto formatSize = [](std::uint64_t bytes) {
-            if (bytes == 0)
-                return std::string();
-            const double kb = 1024.0;
-            const double mb = kb * 1024.0;
-            const double gb = mb * 1024.0;
-            char buf[32] = {0};
-            if (bytes >= static_cast<std::uint64_t>(gb)) {
-                std::snprintf(buf, sizeof(buf), "%.1f GB", bytes / gb);
-            } else {
-                std::snprintf(buf, sizeof(buf), "%.0f MB", bytes / mb);
-            }
-            return std::string(buf);
-        };
 
         const bool installedSection = this->isInstalledSection();
         const bool saveSyncSection = this->isSaveSyncSection();
         for (const auto& item : this->visibleItems) {
-            std::string sizeText = formatSize(item.size);
-            std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
-            int nameLimit = 56;
-            if (!suffix.empty()) {
-                int maxSuffix = static_cast<int>(suffix.size()) + 1;
-                if (nameLimit > maxSuffix)
-                    nameLimit -= maxSuffix;
-            }
-            if (nameLimit < 8)
-                nameLimit = 8;
-            std::string itm = inst::util::shortenString(item.name, nameLimit, true) + suffix;
+            std::string itm = this->buildListMenuLabel(item, false);
             auto entry = pu::ui::elm::MenuItem::New(itm);
             entry->SetColor(COLOR("#FFFFFFFF"));
             if (!installedSection && !saveSyncSection) {
@@ -2150,6 +2335,12 @@ namespace inst::ui {
             if (sel < 0 || sel >= (int)this->menu->GetItems().size())
                 this->menu->SetSelectedIndex(0);
         }
+        this->listMarqueeIndex = -1;
+        this->listMarqueeOffset = 0;
+        this->listMarqueeLastTick = 0;
+        this->listMarqueePauseUntilTick = 0;
+        this->listMarqueeBaseHidden = false;
+        this->updateListMarquee(true);
         this->updateDescriptionPanel();
     }
 
@@ -2580,6 +2771,7 @@ namespace inst::ui {
         this->previewKey.clear();
         this->pageInfoText->SetText("inst.shop.loading"_lang);
         CenterTextX(this->pageInfoText);
+        this->setLoadingProgress(0, true);
         mainApp->LoadLayout(mainApp->shopinstPage);
         mainApp->CallForRender();
 
@@ -2602,7 +2794,30 @@ namespace inst::ui {
 
         std::string error;
         bool usedLegacyFallback = false;
-        this->shopSections = shopInstStuff::FetchShopSections(shopUrl, inst::config::shopUser, inst::config::shopPass, error, !forceRefresh, &usedLegacyFallback);
+        int loadingPercent = 5;
+        this->setLoadingProgress(loadingPercent, true);
+        mainApp->CallForRender();
+
+        int lastFetchPercent = -1;
+        auto fetchProgressCb = [&](std::uint64_t downloaded, std::uint64_t total) {
+            if (total == 0)
+                return;
+            int fetchPercent = static_cast<int>((downloaded * 100ULL) / total);
+            if (fetchPercent > 100)
+                fetchPercent = 100;
+            if (fetchPercent == lastFetchPercent)
+                return;
+            lastFetchPercent = fetchPercent;
+
+            // Reserve the last 20% for parsing/section preparation after transfer.
+            loadingPercent = 5 + ((fetchPercent * 75) / 100);
+            this->setLoadingProgress(loadingPercent, true);
+            mainApp->CallForRender();
+        };
+        this->shopSections = shopInstStuff::FetchShopSections(shopUrl, inst::config::shopUser, inst::config::shopPass, error, !forceRefresh, &usedLegacyFallback, fetchProgressCb);
+        loadingPercent = std::max(loadingPercent, 82);
+        this->setLoadingProgress(loadingPercent, true);
+        mainApp->CallForRender();
         this->saveSyncEnabled = !usedLegacyFallback;
         ShopDlcTrace("FetchShopSections done sections=%llu errorLen=%llu", static_cast<unsigned long long>(this->shopSections.size()), static_cast<unsigned long long>(error.size()));
         ShopDlcTrace("save sync eligibility legacyFallback=%d enabled=%d", usedLegacyFallback ? 1 : 0, this->saveSyncEnabled ? 1 : 0);
@@ -2618,6 +2833,9 @@ namespace inst::ui {
             mainApp->LoadLayout(mainApp->mainPage);
             return;
         }
+        loadingPercent = 88;
+        this->setLoadingProgress(loadingPercent, true);
+        mainApp->CallForRender();
 
         for (const auto& section : this->shopSections) {
             if (section.id == "updates" || section.id == "update")
@@ -2708,6 +2926,8 @@ namespace inst::ui {
         this->filterOwnedSections();
         if (this->saveSyncEnabled)
             this->buildSaveSyncSection(shopUrl);
+        this->setLoadingProgress(100, true);
+        mainApp->CallForRender();
 
         this->selectedSectionIndex = 0;
         for (size_t i = 0; i < this->shopSections.size(); i++) {
@@ -2721,6 +2941,7 @@ namespace inst::ui {
         this->shopGridPage = -1;
         this->gridSelectedIndex = 0;
         this->gridPage = -1;
+        this->setLoadingProgress(0, false);
         this->updateSectionText();
         this->updateButtonsText();
         this->selectedItems.clear();
@@ -3330,6 +3551,7 @@ namespace inst::ui {
         } else {
             this->updatePreview();
             this->updateShopGrid();
+            this->updateListMarquee(false);
         }
         this->updateDescriptionPanel();
         this->updateDebug();

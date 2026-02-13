@@ -874,6 +874,32 @@ namespace {
 }
 
 namespace shopInstStuff {
+    namespace {
+        struct ShopFetchProgressContext {
+            const ShopFetchProgressCallback* cb = nullptr;
+            curl_off_t lastNow = -1;
+            curl_off_t lastTotal = -1;
+        };
+
+        int ShopFetchProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t /*ultotal*/, curl_off_t /*ulnow*/)
+        {
+            auto* ctx = static_cast<ShopFetchProgressContext*>(clientp);
+            if (ctx == nullptr || ctx->cb == nullptr || !(*ctx->cb))
+                return 0;
+
+            if (ctx->lastNow == dlnow && ctx->lastTotal == dltotal)
+                return 0;
+
+            ctx->lastNow = dlnow;
+            ctx->lastTotal = dltotal;
+
+            const std::uint64_t now = (dlnow > 0) ? static_cast<std::uint64_t>(dlnow) : 0;
+            const std::uint64_t total = (dltotal > 0) ? static_cast<std::uint64_t>(dltotal) : 0;
+            (*ctx->cb)(now, total);
+            return 0;
+        }
+    }
+
     struct FetchResult {
         std::string body;
         long responseCode = 0;
@@ -882,7 +908,7 @@ namespace shopInstStuff {
         std::string error;
     };
 
-    FetchResult FetchShopResponse(const std::string& url, const std::string& user, const std::string& pass)
+    FetchResult FetchShopResponse(const std::string& url, const std::string& user, const std::string& pass, const ShopFetchProgressCallback& progressCb = ShopFetchProgressCallback())
     {
         FetchResult result;
         CURL* curl = curl_easy_init();
@@ -899,6 +925,15 @@ namespace shopInstStuff {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result.body);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 15000L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000L);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+
+        ShopFetchProgressContext progressCtx{};
+        if (progressCb) {
+            progressCtx.cb = &progressCb;
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, ShopFetchProgressHandler);
+            curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &progressCtx);
+        }
 
         struct curl_slist* headerList = nullptr;
         const auto headers = BuildTinfoilHeaders();
@@ -931,6 +966,9 @@ namespace shopInstStuff {
 
         if (rc != CURLE_OK) {
             result.error = curl_easy_strerror(rc);
+        } else if (progressCb) {
+            const std::uint64_t bodySize = static_cast<std::uint64_t>(result.body.size());
+            progressCb(bodySize, bodySize);
         }
 
         return result;
@@ -957,7 +995,7 @@ namespace shopInstStuff {
         return true;
     }
 
-    std::vector<ShopItem> FetchShop(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error)
+    std::vector<ShopItem> FetchShop(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, const ShopFetchProgressCallback& progressCb)
     {
         std::vector<ShopItem> items;
         error.clear();
@@ -968,7 +1006,7 @@ namespace shopInstStuff {
             return items;
         }
 
-        FetchResult fetch = FetchShopResponse(baseUrl, user, pass);
+        FetchResult fetch = FetchShopResponse(baseUrl, user, pass, progressCb);
         if (!ValidateShopResponse(fetch, error))
             return items;
 
@@ -1090,7 +1128,7 @@ namespace shopInstStuff {
         return items;
     }
 
-    std::vector<ShopSection> FetchShopSections(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, bool allowCache, bool* outUsedLegacyFallback)
+    std::vector<ShopSection> FetchShopSections(const std::string& shopUrl, const std::string& user, const std::string& pass, std::string& error, bool allowCache, bool* outUsedLegacyFallback, const ShopFetchProgressCallback& progressCb)
     {
         std::vector<ShopSection> sections;
         error.clear();
@@ -1104,11 +1142,11 @@ namespace shopInstStuff {
         }
 
         std::string sectionsUrl = baseUrl + "/api/shop/sections";
-        FetchResult fetch = FetchShopResponse(sectionsUrl, user, pass);
+        FetchResult fetch = FetchShopResponse(sectionsUrl, user, pass, progressCb);
         if (fetch.responseCode == 404) {
             if (outUsedLegacyFallback)
                 *outUsedLegacyFallback = true;
-            std::vector<ShopItem> items = FetchShop(shopUrl, user, pass, error);
+            std::vector<ShopItem> items = FetchShop(shopUrl, user, pass, error, progressCb);
             if (!items.empty()) {
                 sections.push_back({"all", "All", items});
             }
