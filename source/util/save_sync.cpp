@@ -504,15 +504,52 @@ namespace {
         return total;
     }
 
+    void BuildVersionAndRevision(std::string& outVersion, std::string& outRevision)
+    {
+        const std::string raw = inst::config::appVersion;
+        outVersion = raw.empty() ? "0.0" : raw;
+        outRevision = "0";
+
+        const std::size_t firstDot = raw.find('.');
+        if (firstDot == std::string::npos)
+            return;
+
+        const std::size_t secondDot = raw.find('.', firstDot + 1);
+        if (secondDot == std::string::npos) {
+            outVersion = raw;
+            return;
+        }
+
+        outVersion = raw.substr(0, secondDot);
+        const std::string revisionToken = raw.substr(secondDot + 1);
+        if (revisionToken.empty())
+            return;
+
+        std::size_t digitsEnd = 0;
+        while (digitsEnd < revisionToken.size()) {
+            const char c = revisionToken[digitsEnd];
+            if (c < '0' || c > '9')
+                break;
+            digitsEnd++;
+        }
+        if (digitsEnd > 0)
+            outRevision = revisionToken.substr(0, digitsEnd);
+    }
+
     std::vector<std::string> BuildShopHeaders()
     {
-        std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
-        std::string versionHeader = "Version: " + inst::config::appVersion;
+        std::string themeHeader = "Theme: 0000000000000000000000000000000000000000000000000000000000000000";
+        std::string versionValue;
+        std::string revisionValue;
+        BuildVersionAndRevision(versionValue, revisionValue);
+        std::string versionHeader = "Version: " + versionValue;
+        std::string revisionHeader = "Revision: " + revisionValue;
         std::string languageHeader = "Language: " + Language::GetShopHeaderLanguage();
         return {
             themeHeader,
-            "UID: 0000000000000000",
+            "UID: 0000000000000000000000000000000000000000000000000000000000000000",
             versionHeader,
+            revisionHeader,
             languageHeader,
             "HAUTH: 0",
             "UAUTH: 0"

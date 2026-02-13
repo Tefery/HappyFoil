@@ -95,15 +95,52 @@ namespace {
         return result;
     }
 
+    void BuildVersionAndRevision(std::string& outVersion, std::string& outRevision)
+    {
+        const std::string raw = inst::config::appVersion;
+        outVersion = raw.empty() ? "0.0" : raw;
+        outRevision = "0";
+
+        const std::size_t firstDot = raw.find('.');
+        if (firstDot == std::string::npos)
+            return;
+
+        const std::size_t secondDot = raw.find('.', firstDot + 1);
+        if (secondDot == std::string::npos) {
+            outVersion = raw;
+            return;
+        }
+
+        outVersion = raw.substr(0, secondDot);
+        const std::string revisionToken = raw.substr(secondDot + 1);
+        if (revisionToken.empty())
+            return;
+
+        std::size_t digitsEnd = 0;
+        while (digitsEnd < revisionToken.size()) {
+            const char c = revisionToken[digitsEnd];
+            if (c < '0' || c > '9')
+                break;
+            digitsEnd++;
+        }
+        if (digitsEnd > 0)
+            outRevision = revisionToken.substr(0, digitsEnd);
+    }
+
     std::vector<std::string> BuildTinfoilHeaders()
     {
-        std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
-        std::string versionHeader = "Version: " + inst::config::appVersion;
+        std::string themeHeader = "Theme: 0000000000000000000000000000000000000000000000000000000000000000";
+        std::string versionValue;
+        std::string revisionValue;
+        BuildVersionAndRevision(versionValue, revisionValue);
+        std::string versionHeader = "Version: " + versionValue;
+        std::string revisionHeader = "Revision: " + revisionValue;
         std::string languageHeader = "Language: " + Language::GetShopHeaderLanguage();
         return {
             themeHeader,
-            "UID: 0000000000000000",
+            "UID: 0000000000000000000000000000000000000000000000000000000000000000",
             versionHeader,
+            revisionHeader,
             languageHeader,
             "HAUTH: 0",
             "UAUTH: 0"
@@ -1142,15 +1179,26 @@ namespace shopInstStuff {
             return sections;
         }
 
+        auto tryLegacyFallback = [&]() -> bool {
+            std::string legacyError;
+            std::vector<ShopItem> items = FetchShop(shopUrl, user, pass, legacyError, progressCb);
+            if (items.empty()) {
+                if (!legacyError.empty())
+                    error = legacyError;
+                return false;
+            }
+
+            if (outUsedLegacyFallback)
+                *outUsedLegacyFallback = true;
+            error.clear();
+            sections.push_back({"all", "All", items});
+            return true;
+        };
+
         std::string sectionsUrl = baseUrl + "/api/shop/sections";
         FetchResult fetch = FetchShopResponse(sectionsUrl, user, pass, progressCb);
         if (fetch.responseCode == 404) {
-            if (outUsedLegacyFallback)
-                *outUsedLegacyFallback = true;
-            std::vector<ShopItem> items = FetchShop(shopUrl, user, pass, error, progressCb);
-            if (!items.empty()) {
-                sections.push_back({"all", "All", items});
-            }
+            tryLegacyFallback();
             return sections;
         }
 
@@ -1159,6 +1207,8 @@ namespace shopInstStuff {
                 error = "inst.shop.unreachable"_lang;
                 return sections;
             }
+            if (tryLegacyFallback())
+                return sections;
             if (allowCache) {
                 std::string cachedBody;
                 bool fresh = false;
@@ -1175,6 +1225,8 @@ namespace shopInstStuff {
         }
 
         sections = ParseShopSectionsBody(fetch.body, baseUrl, error);
+        if (sections.empty() && !error.empty() && tryLegacyFallback())
+            return sections;
         if (!sections.empty())
             SaveShopCache(baseUrl, fetch.body);
         return sections;
