@@ -7,9 +7,11 @@
 #include <fstream>
 #include <mutex>
 #include <system_error>
+#include <vector>
 #include "util/curl.hpp"
 #include "util/config.hpp"
 #include "util/error.hpp"
+#include "util/lang.hpp"
 #include "ui/instPage.hpp"
 
 static size_t writeDataFile(void *ptr, size_t size, size_t nmemb, void *stream) {
@@ -39,6 +41,21 @@ static bool isLikelyImageFile(const char *path) {
 
 static std::string getUserAgent() {
     return "CyberFoil/" + inst::config::appVersion;
+}
+
+static std::vector<std::string> buildShopHeaders()
+{
+    std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
+    std::string versionHeader = "Version: " + inst::config::appVersion;
+    std::string languageHeader = "Language: " + Language::GetShopHeaderLanguage();
+    return {
+        themeHeader,
+        "UID: 0000000000000000",
+        versionHeader,
+        languageHeader,
+        "HAUTH: 0",
+        "UAUTH: 0"
+    };
 }
 
 size_t writeDataBuffer(char *ptr, size_t size, size_t nmemb, void *userdata) {
@@ -242,6 +259,13 @@ namespace inst::curl {
         curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeDataFile);
         curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1L);
 
+        struct curl_slist* headerList = nullptr;
+        const auto headers = buildShopHeaders();
+        for (const auto& header : headers)
+            headerList = curl_slist_append(headerList, header.c_str());
+        if (headerList)
+            curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headerList);
+
         if (!user.empty() || !pass.empty()) {
             std::string authValue = user + ":" + pass;
             curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
@@ -261,6 +285,8 @@ namespace inst::curl {
         curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &responseCode);
 
         fclose(pagefile);
+        if (headerList)
+            curl_slist_free_all(headerList);
         curl_easy_cleanup(curl_handle);
 
         const bool ok = (result == CURLE_OK) && (responseCode >= 200 && responseCode < 300);
@@ -289,9 +315,18 @@ namespace inst::curl {
         curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeDataFile);
         curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1L);
 
+        struct curl_slist* headerList = nullptr;
+        const auto headers = buildShopHeaders();
+        for (const auto& header : headers)
+            headerList = curl_slist_append(headerList, header.c_str());
+        if (headerList)
+            curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headerList);
+
         FILE *pagefile = fopen(pagefilename, "wb");
         if (pagefile == nullptr) {
             LOG_DEBUG("Failed to open image output file: %s\n", pagefilename);
+            if (headerList)
+                curl_slist_free_all(headerList);
             curl_easy_cleanup(curl_handle);
             return false;
         }
@@ -311,6 +346,8 @@ namespace inst::curl {
         curl_easy_getinfo(curl_handle, CURLINFO_CONTENT_TYPE, &contentType);
 
         fclose(pagefile);
+        if (headerList)
+            curl_slist_free_all(headerList);
         curl_easy_cleanup(curl_handle);
 
         bool ok = (result == CURLE_OK) && (responseCode >= 200 && responseCode < 300);

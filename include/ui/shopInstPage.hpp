@@ -81,6 +81,7 @@ namespace inst::ui {
             int listMarqueeIndex = -1;
             int listVisibleTopIndex = 0;
             int listPrevSelectedIndex = -1;
+            int listRenderedSelectedIndex = -1;
             std::size_t listMarqueeOffset = 0;
             u64 listMarqueeLastTick = 0;
             u64 listMarqueePauseUntilTick = 0;

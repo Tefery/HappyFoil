@@ -754,8 +754,7 @@ namespace inst::ui {
         this->imageLoadingText = TextBlock::New(0, 98, "Fetching images...", 18);
         this->imageLoadingText->SetColor(COLOR("#FFFFFFFF"));
         this->imageLoadingText->SetVisible(false);
-        const auto marqueeMaskColor = inst::config::oledMode ? COLOR("#000000FF") : COLOR("#170909FF");
-        this->listMarqueeMaskRect = Rectangle::New(0, 0, 0, 0, marqueeMaskColor);
+        this->listMarqueeMaskRect = Rectangle::New(0, 0, 0, 0, this->menu->GetOnFocusColor());
         this->listMarqueeMaskRect->SetVisible(false);
         this->listMarqueeOverlayText = TextBlock::New(0, 0, "", 22);
         this->listMarqueeOverlayText->SetColor(COLOR("#FFFFFFFF"));
@@ -1070,12 +1069,18 @@ namespace inst::ui {
         int textX = menuX + 25;
         if (!this->isInstalledSection() && !this->isSaveSyncSection())
             textX = menuX + 76;
-        int maskWidth = menuW - (textX - menuX) - 28;
-        if (maskWidth < 0)
-            maskWidth = 0;
-        this->listMarqueeMaskRect->SetX(textX - 1);
+        const int maxRowRight = menuX + menuW - 28;
+        const int previewSafeRight = menuX + 860;
+        int maskRight = maxRowRight;
+        if (maskRight > previewSafeRight)
+            maskRight = previewSafeRight;
+        if (maskRight < textX)
+            maskRight = textX;
+        int maskWidth = maskRight - textX;
+        this->listMarqueeMaskRect->SetColor(this->menu->GetOnFocusColor());
+        this->listMarqueeMaskRect->SetX(textX);
         this->listMarqueeMaskRect->SetY(this->menu->GetProcessedY() + (row * itemHeight));
-        this->listMarqueeMaskRect->SetWidth(maskWidth + 2);
+        this->listMarqueeMaskRect->SetWidth(maskWidth);
         this->listMarqueeMaskRect->SetHeight(itemHeight);
         this->listMarqueeMaskRect->SetVisible(true);
         this->listMarqueeOverlayText->SetX(textX);
@@ -2255,6 +2260,7 @@ namespace inst::ui {
     }
 
     void shopInstPage::drawMenuItems(bool clearItems) {
+        const int selectedIndexBefore = this->menu->GetSelectedIndex();
         if (clearItems) this->selectedItems.clear();
         this->emptySectionText->SetVisible(false);
         this->listMarqueeMaskRect->SetVisible(false);
@@ -2319,8 +2325,23 @@ namespace inst::ui {
 
         const bool installedSection = this->isInstalledSection();
         const bool saveSyncSection = this->isSaveSyncSection();
-        for (const auto& item : this->visibleItems) {
+        for (std::size_t i = 0; i < this->visibleItems.size(); i++) {
+            const auto& item = this->visibleItems[i];
             std::string itm = this->buildListMenuLabel(item);
+            if (static_cast<int>(i) == selectedIndexBefore) {
+                std::string sizeText = FormatSizeText(item.size);
+                std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
+                int nameLimit = 56;
+                if (!suffix.empty()) {
+                    int maxSuffix = static_cast<int>(suffix.size()) + 1;
+                    if (nameLimit > maxSuffix)
+                        nameLimit -= maxSuffix;
+                }
+                if (nameLimit < 8)
+                    nameLimit = 8;
+                if (item.name.size() > static_cast<std::size_t>(nameLimit))
+                    itm.clear();
+            }
             auto entry = pu::ui::elm::MenuItem::New(itm);
             entry->SetColor(COLOR("#FFFFFFFF"));
             if (!installedSection && !saveSyncSection) {
@@ -2343,6 +2364,7 @@ namespace inst::ui {
         this->listMarqueeIndex = -1;
         this->listVisibleTopIndex = 0;
         this->listPrevSelectedIndex = -1;
+        this->listRenderedSelectedIndex = this->menu->GetSelectedIndex();
         this->listMarqueeOffset = 0;
         this->listMarqueeLastTick = 0;
         this->listMarqueePauseUntilTick = 0;
@@ -3555,6 +3577,10 @@ namespace inst::ui {
                 this->updateShopGrid();
             }
         } else {
+            const int currentSelectedIndex = this->menu->GetSelectedIndex();
+            if (currentSelectedIndex != this->listRenderedSelectedIndex) {
+                this->drawMenuItems(false);
+            }
             this->updatePreview();
             this->updateShopGrid();
             this->updateListMarquee(false);

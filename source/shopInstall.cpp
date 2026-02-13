@@ -98,14 +98,15 @@ namespace {
     std::vector<std::string> BuildTinfoilHeaders()
     {
         std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
+        std::string versionHeader = "Version: " + inst::config::appVersion;
+        std::string languageHeader = "Language: " + Language::GetShopHeaderLanguage();
         return {
             themeHeader,
-            "Uid: 0000000000000000",
-            "Version: 0.0",
-            "Revision: 0",
-            "Language: en",
-            "Hauth: 0",
-            "Uauth: 0"
+            "UID: 0000000000000000",
+            versionHeader,
+            languageHeader,
+            "HAUTH: 0",
+            "UAUTH: 0"
         };
     }
 

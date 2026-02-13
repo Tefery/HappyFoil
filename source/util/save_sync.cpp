@@ -21,6 +21,7 @@
 #include "util/config.hpp"
 #include "util/curl.hpp"
 #include "util/json.hpp"
+#include "util/lang.hpp"
 #include "util/title_util.hpp"
 #include "util/util.hpp"
 
@@ -503,6 +504,21 @@ namespace {
         return total;
     }
 
+    std::vector<std::string> BuildShopHeaders()
+    {
+        std::string themeHeader = "Theme: CyberFoil/" + inst::config::appVersion;
+        std::string versionHeader = "Version: " + inst::config::appVersion;
+        std::string languageHeader = "Language: " + Language::GetShopHeaderLanguage();
+        return {
+            themeHeader,
+            "UID: 0000000000000000",
+            versionHeader,
+            languageHeader,
+            "HAUTH: 0",
+            "UAUTH: 0"
+        };
+    }
+
     bool HttpGetWithAuth(const std::string& url, const std::string& user, const std::string& pass, long& outCode, std::string& outBody, std::string& error)
     {
         outBody.clear();
@@ -530,6 +546,13 @@ namespace {
         curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 15000L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000L);
 
+        struct curl_slist* headerList = nullptr;
+        const auto headers = BuildShopHeaders();
+        for (const auto& header : headers)
+            headerList = curl_slist_append(headerList, header.c_str());
+        if (headerList)
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
+
         std::string authValue;
         if (!user.empty() || !pass.empty()) {
             authValue = user + ":" + pass;
@@ -539,6 +562,8 @@ namespace {
 
         const CURLcode rc = curl_easy_perform(curl);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &outCode);
+        if (headerList)
+            curl_slist_free_all(headerList);
         curl_easy_cleanup(curl);
 
         if (rc != CURLE_OK) {
@@ -588,6 +613,13 @@ namespace {
         curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 20000L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000L);
 
+        struct curl_slist* headerList = nullptr;
+        const auto headers = BuildShopHeaders();
+        for (const auto& header : headers)
+            headerList = curl_slist_append(headerList, header.c_str());
+        if (headerList)
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
+
         std::string authValue;
         if (!user.empty() || !pass.empty()) {
             authValue = user + ":" + pass;
@@ -597,6 +629,8 @@ namespace {
 
         const CURLcode rc = curl_easy_perform(curl);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &outCode);
+        if (headerList)
+            curl_slist_free_all(headerList);
         curl_easy_cleanup(curl);
 
         if (rc != CURLE_OK) {
@@ -716,6 +750,13 @@ namespace {
         curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 60000L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000L);
 
+        struct curl_slist* headerList = nullptr;
+        const auto headers = BuildShopHeaders();
+        for (const auto& header : headers)
+            headerList = curl_slist_append(headerList, header.c_str());
+        if (headerList)
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
+
         std::string authValue;
         if (!user.empty() || !pass.empty()) {
             authValue = user + ":" + pass;
@@ -725,6 +766,8 @@ namespace {
 
         curl_mime* mime = curl_mime_init(curl);
         if (!mime) {
+            if (headerList)
+                curl_slist_free_all(headerList);
             curl_easy_cleanup(curl);
             error = "Failed to prepare upload payload.";
             return false;
@@ -757,6 +800,8 @@ namespace {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
 
         curl_mime_free(mime);
+        if (headerList)
+            curl_slist_free_all(headerList);
         curl_easy_cleanup(curl);
 
         if (rc != CURLE_OK) {
