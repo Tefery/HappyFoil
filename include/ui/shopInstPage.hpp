@@ -79,10 +79,11 @@ namespace inst::ui {
             u64 holdStartTick = 0;
             u64 lastHoldTick = 0;
             int listMarqueeIndex = -1;
+            int listVisibleTopIndex = 0;
+            int listPrevSelectedIndex = -1;
             std::size_t listMarqueeOffset = 0;
             u64 listMarqueeLastTick = 0;
             u64 listMarqueePauseUntilTick = 0;
-            bool listMarqueeBaseHidden = false;
             bool touchActive = false;
             bool touchMoved = false;
             u64 imageLoadingUntilTick = 0;
@@ -125,7 +126,7 @@ namespace inst::ui {
             void updateSectionText();
             void updateButtonsText();
             void setButtonsText(const std::string& text);
-            std::string buildListMenuLabel(const shopInstStuff::ShopItem& item, bool selected) const;
+            std::string buildListMenuLabel(const shopInstStuff::ShopItem& item) const;
             void updateListMarquee(bool force);
             void buildInstalledSection();
             void buildLegacyOwnedSections();

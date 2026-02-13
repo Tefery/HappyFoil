@@ -754,7 +754,8 @@ namespace inst::ui {
         this->imageLoadingText = TextBlock::New(0, 98, "Fetching images...", 18);
         this->imageLoadingText->SetColor(COLOR("#FFFFFFFF"));
         this->imageLoadingText->SetVisible(false);
-        this->listMarqueeMaskRect = Rectangle::New(0, 0, 0, 0, this->menu->GetOnFocusColor());
+        const auto marqueeMaskColor = inst::config::oledMode ? COLOR("#000000FF") : COLOR("#170909FF");
+        this->listMarqueeMaskRect = Rectangle::New(0, 0, 0, 0, marqueeMaskColor);
         this->listMarqueeMaskRect->SetVisible(false);
         this->listMarqueeOverlayText = TextBlock::New(0, 0, "", 22);
         this->listMarqueeOverlayText->SetColor(COLOR("#FFFFFFFF"));
@@ -938,7 +939,7 @@ namespace inst::ui {
         this->loadingBarFill->SetWidth((500 * percent) / 100);
     }
 
-    std::string shopInstPage::buildListMenuLabel(const shopInstStuff::ShopItem& item, bool selected) const
+    std::string shopInstPage::buildListMenuLabel(const shopInstStuff::ShopItem& item) const
     {
         std::string sizeText = FormatSizeText(item.size);
         std::string suffix = sizeText.empty() ? "" : (" [" + sizeText + "]");
@@ -951,10 +952,7 @@ namespace inst::ui {
         if (nameLimit < 8)
             nameLimit = 8;
 
-        if (!selected || item.name.size() <= static_cast<std::size_t>(nameLimit))
-            return inst::util::shortenString(item.name, nameLimit, true) + suffix;
-
-        return BuildMarqueeWindow(item.name, this->listMarqueeOffset, nameLimit) + suffix;
+        return inst::util::shortenString(item.name, nameLimit, true) + suffix;
     }
 
     void shopInstPage::updateListMarquee(bool force)
@@ -962,14 +960,14 @@ namespace inst::ui {
         if (this->shopGridMode || !this->menu->IsVisible()) {
             this->listMarqueeMaskRect->SetVisible(false);
             this->listMarqueeOverlayText->SetVisible(false);
-            this->listMarqueeBaseHidden = false;
+            this->listPrevSelectedIndex = -1;
             return;
         }
         auto& items = this->menu->GetItems();
         if (items.empty() || this->visibleItems.empty()) {
             this->listMarqueeMaskRect->SetVisible(false);
             this->listMarqueeOverlayText->SetVisible(false);
-            this->listMarqueeBaseHidden = false;
+            this->listPrevSelectedIndex = -1;
             return;
         }
 
@@ -977,9 +975,38 @@ namespace inst::ui {
         if (selectedIndex < 0 || selectedIndex >= static_cast<int>(this->visibleItems.size())) {
             this->listMarqueeMaskRect->SetVisible(false);
             this->listMarqueeOverlayText->SetVisible(false);
-            this->listMarqueeBaseHidden = false;
+            this->listPrevSelectedIndex = -1;
             return;
         }
+
+        const int itemCount = static_cast<int>(items.size());
+        int visibleCount = this->menu->GetNumberOfItemsToShow();
+        if (visibleCount < 1)
+            visibleCount = 1;
+        int maxTopIndex = itemCount - visibleCount;
+        if (maxTopIndex < 0)
+            maxTopIndex = 0;
+
+        if (force || this->listPrevSelectedIndex < 0) {
+            if (selectedIndex >= itemCount - visibleCount)
+                this->listVisibleTopIndex = maxTopIndex;
+            else if (selectedIndex < visibleCount)
+                this->listVisibleTopIndex = 0;
+            else
+                this->listVisibleTopIndex = selectedIndex;
+        } else if (selectedIndex > this->listPrevSelectedIndex) {
+            if (selectedIndex >= (this->listVisibleTopIndex + visibleCount))
+                this->listVisibleTopIndex = selectedIndex - visibleCount + 1;
+        } else if (selectedIndex < this->listPrevSelectedIndex) {
+            if (selectedIndex < this->listVisibleTopIndex)
+                this->listVisibleTopIndex = selectedIndex;
+        }
+
+        if (this->listVisibleTopIndex < 0)
+            this->listVisibleTopIndex = 0;
+        if (this->listVisibleTopIndex > maxTopIndex)
+            this->listVisibleTopIndex = maxTopIndex;
+        this->listPrevSelectedIndex = selectedIndex;
 
         const u64 now = armGetSystemTick();
         const u64 freq = armGetSystemTickFreq();
@@ -1010,12 +1037,6 @@ namespace inst::ui {
         if (!shouldScroll) {
             this->listMarqueeMaskRect->SetVisible(false);
             this->listMarqueeOverlayText->SetVisible(false);
-            if (this->listMarqueeBaseHidden) {
-                for (std::size_t i = 0; i < items.size() && i < this->visibleItems.size(); i++)
-                    items[i]->SetName(this->buildListMenuLabel(this->visibleItems[i], false));
-                this->menu->RefreshRenderCache();
-                this->listMarqueeBaseHidden = false;
-            }
             this->listMarqueeOffset = 0;
             return;
         }
@@ -1033,34 +1054,11 @@ namespace inst::ui {
             force = true;
         }
 
-        int visibleCount = this->menu->GetNumberOfItemsToShow();
-        if (visibleCount < 1)
-            visibleCount = 1;
-        int topIndex = this->menu->GetFirstVisibleIndex();
-        if (topIndex < 0)
-            topIndex = 0;
-        int row = selectedIndex - topIndex;
+        int row = selectedIndex - this->listVisibleTopIndex;
         if (row < 0 || row >= visibleCount) {
             this->listMarqueeMaskRect->SetVisible(false);
             this->listMarqueeOverlayText->SetVisible(false);
-            if (this->listMarqueeBaseHidden) {
-                for (std::size_t i = 0; i < items.size() && i < this->visibleItems.size(); i++)
-                    items[i]->SetName(this->buildListMenuLabel(this->visibleItems[i], false));
-                this->menu->RefreshRenderCache();
-                this->listMarqueeBaseHidden = false;
-            }
             return;
-        }
-
-        if (!this->listMarqueeBaseHidden || force) {
-            for (std::size_t i = 0; i < items.size() && i < this->visibleItems.size(); i++) {
-                std::string label = this->buildListMenuLabel(this->visibleItems[i], false);
-                if (static_cast<int>(i) == selectedIndex)
-                    label.clear();
-                items[i]->SetName(label);
-            }
-            this->menu->RefreshRenderCache();
-            this->listMarqueeBaseHidden = true;
         }
 
         std::string label = BuildMarqueeWindow(item.name, this->listMarqueeOffset, nameLimit) + suffix;
@@ -1072,7 +1070,14 @@ namespace inst::ui {
         int textX = menuX + 25;
         if (!this->isInstalledSection() && !this->isSaveSyncSection())
             textX = menuX + 76;
-        this->listMarqueeMaskRect->SetVisible(false);
+        int maskWidth = menuW - (textX - menuX) - 28;
+        if (maskWidth < 0)
+            maskWidth = 0;
+        this->listMarqueeMaskRect->SetX(textX - 1);
+        this->listMarqueeMaskRect->SetY(this->menu->GetProcessedY() + (row * itemHeight));
+        this->listMarqueeMaskRect->SetWidth(maskWidth + 2);
+        this->listMarqueeMaskRect->SetHeight(itemHeight);
+        this->listMarqueeMaskRect->SetVisible(true);
         this->listMarqueeOverlayText->SetX(textX);
         this->listMarqueeOverlayText->SetY(textY);
         this->listMarqueeOverlayText->SetVisible(true);
@@ -2315,7 +2320,7 @@ namespace inst::ui {
         const bool installedSection = this->isInstalledSection();
         const bool saveSyncSection = this->isSaveSyncSection();
         for (const auto& item : this->visibleItems) {
-            std::string itm = this->buildListMenuLabel(item, false);
+            std::string itm = this->buildListMenuLabel(item);
             auto entry = pu::ui::elm::MenuItem::New(itm);
             entry->SetColor(COLOR("#FFFFFFFF"));
             if (!installedSection && !saveSyncSection) {
@@ -2336,10 +2341,11 @@ namespace inst::ui {
                 this->menu->SetSelectedIndex(0);
         }
         this->listMarqueeIndex = -1;
+        this->listVisibleTopIndex = 0;
+        this->listPrevSelectedIndex = -1;
         this->listMarqueeOffset = 0;
         this->listMarqueeLastTick = 0;
         this->listMarqueePauseUntilTick = 0;
-        this->listMarqueeBaseHidden = false;
         this->updateListMarquee(true);
         this->updateDescriptionPanel();
     }
