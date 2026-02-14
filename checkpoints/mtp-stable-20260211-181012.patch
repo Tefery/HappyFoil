@@ -364,7 +364,7 @@ index 99e2bb7..58615d3 100644
 +std::atomic<u64> g_stream_trace_count{0};
 +std::atomic<u64> g_stream_write_calls{0};
 +constexpr u64 kStreamTraceMaxLines = 60000;
-+constexpr const char* kStreamTracePath = "sdmc:/switch/CyberFoil/mtp_install_debug.log";
++constexpr const char* kStreamTracePath = "sdmc:/switch/HappyFoil/mtp_install_debug.log";
 +
 +u64 TicksToMs(u64 ticks) {
 +    const u64 freq = armGetSystemTickFreq();
@@ -930,7 +930,7 @@ index 7cfc540..b5c5e49 100644
  namespace inst::mtp {
  namespace {
  
-+constexpr const char* kAlbumTracePath = "sdmc:/switch/CyberFoil/mtp_album_debug.log";
++constexpr const char* kAlbumTracePath = "sdmc:/switch/HappyFoil/mtp_album_debug.log";
 +std::mutex g_album_trace_mutex;
 +std::atomic<u64> g_album_trace_count{0};
 +constexpr u64 kAlbumTraceMaxLines = 20000;

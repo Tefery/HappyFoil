@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE_NAME="${IMAGE_NAME:-cyberfoil-builder:nro}"
+IMAGE_NAME="${IMAGE_NAME:-happyfoil-builder:nro}"
 DOCKERFILE_PATH="${ROOT_DIR}/docker/Dockerfile.nro"
 
 if [[ ! -f "${ROOT_DIR}/include/Plutonium/Makefile" ]]; then
@@ -20,12 +20,12 @@ fi
 echo "Building Docker image: ${IMAGE_NAME}"
 docker build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}" "${ROOT_DIR}"
 
-echo "Building cyberfoil.nro with -j${JOBS}..."
+echo "Building happyfoil.nro with -j${JOBS}..."
 docker run --rm \
     --user "$(id -u):$(id -g)" \
     --volume "${ROOT_DIR}:/workspace" \
     --workdir /workspace \
     "${IMAGE_NAME}" \
-    sh -lc "make -C include/Plutonium -f Makefile lib && make -j${JOBS} && mkdir -p dist && cp -f cyberfoil.nro dist/cyberfoil.nro"
+    sh -lc "make -C include/Plutonium -f Makefile lib && make -j${JOBS} && mkdir -p dist && cp -f happyfoil.nro dist/happyfoil.nro"
 
-echo "Done: ${ROOT_DIR}/dist/cyberfoil.nro"
+echo "Done: ${ROOT_DIR}/dist/happyfoil.nro"

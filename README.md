@@ -77,14 +77,14 @@ Offline metadata/icons (no online lookups):
 - To generate an update manifest for GitHub Releases, include:
   `--manifest-base-url https://github.com/<owner>/<repo>/releases/latest/download`
 - The exporter writes `offline_db_manifest.json` with version, size, and sha256 for `titles.pack` and `icons.pack`.
-- Copy the generated `offline_db` directory to `sdmc:/switch/CyberFoil/offline_db/`.
-- Runtime files used by CyberFoil:
+- Copy the generated `offline_db` directory to `sdmc:/switch/HappyFoil/offline_db/`.
+- Runtime files used by HappyFoil:
   `titles.pack`, `icons.pack`, and optional local `manifest.json`.
 - `icons.pack` is read directly in-memory at runtime (no extracted icon cache files needed).
 - In Settings -> Shop, use `Offline DB update (...)` to check/download newer pack versions from the manifest URL.
-- In Settings -> Shop, `Offline DB auto-check on startup` controls whether CyberFoil checks this manifest at app launch.
+- In Settings -> Shop, `Offline DB auto-check on startup` controls whether HappyFoil checks this manifest at app launch.
 - During Offline DB download, the install screen now shows live transfer progress and speed (`MB/s`) to avoid looking frozen on large files.
-- Offline DB updater debug log is written to: `sdmc:/switch/CyberFoil/offline_db_update.log`.
+- Offline DB updater debug log is written to: `sdmc:/switch/HappyFoil/offline_db_update.log`.
 
 
 New in 1.4.0:
@@ -92,7 +92,7 @@ New in 1.4.0:
 - Added Offline DB updater with manifest validation (size + sha256) and atomic replace/rollback behavior.
 - Added startup Offline DB auto-check option (Settings -> Shop).
 - Added Offline DB update telemetry on install screen (live percent + transferred MB + MB/s).
-- Added Offline DB update file logging (`sdmc:/switch/CyberFoil/offline_db_update.log`) for troubleshooting.
+- Added Offline DB update file logging (`sdmc:/switch/HappyFoil/offline_db_update.log`) for troubleshooting.
 - Improved Offline DB update reliability and crash resistance for large downloads/hash verification.
 - Improved HTTP/cURL transfer stability for long downloads and better failure handling.
 - MTP installs now work reliably across repeated sessions.
@@ -130,7 +130,7 @@ Screenshots:
  - Improve MTP robustness and host compatibility
 - Add support for switching between multiple shops
 - Preload title images and banners to cache for a faster UI experience
-- Create a beginner-friendly video tutorial for the complete setup (CyberFoil and shop backend)
+- Create a beginner-friendly video tutorial for the complete setup (HappyFoil and shop backend)
 
 
 

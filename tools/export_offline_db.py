@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Convert CyberFoil-DB artefacts into runtime files used by CyberFoil offline mode.
+Convert CyberFoil-DB artefacts into runtime files used by HappyFoil offline mode.
 
 Outputs:
   - titles.pack (binary metadata container)
@@ -318,7 +318,7 @@ def export_icon_pack(icon_db: pathlib.Path, pack_path: pathlib.Path) -> int:
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Export offline CyberFoil DB artefacts.")
+    parser = argparse.ArgumentParser(description="Export offline HappyFoil DB artefacts.")
     parser.add_argument(
         "--source-dir",
         type=pathlib.Path,

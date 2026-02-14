@@ -49,7 +49,7 @@ namespace inst::offline::dbupdate
         std::mutex g_offlineDbTraceMutex;
         std::atomic<std::uint64_t> g_offlineDbTraceCount{0};
         constexpr std::uint64_t kOfflineDbTraceMaxLines = 40000;
-        constexpr const char* kOfflineDbTracePath = "sdmc:/switch/CyberFoil/offline_db_update.log";
+        constexpr const char* kOfflineDbTracePath = "sdmc:/switch/HappyFoil/offline_db_update.log";
 
         void OfflineDbTrace(const char* fmt, ...)
         {

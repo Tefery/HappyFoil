@@ -388,8 +388,8 @@ index 99e2bb7..f869a7f 100644
 +std::atomic<u64> g_stream_write_calls{0};
 +std::atomic<bool> g_stream_trace_enabled{false};
 +constexpr u64 kStreamTraceMaxLines = 60000;
-+constexpr const char* kStreamTracePath = "sdmc:/switch/CyberFoil/mtp_install_debug.log";
-+constexpr const char* kStreamTraceEnablePath = "sdmc:/switch/CyberFoil/mtp_install_debug.enable";
++constexpr const char* kStreamTracePath = "sdmc:/switch/HappyFoil/mtp_install_debug.log";
++constexpr const char* kStreamTraceEnablePath = "sdmc:/switch/HappyFoil/mtp_install_debug.enable";
 +
 +bool IsStreamTraceEnabled() {
 +    return g_stream_trace_enabled.load(std::memory_order_relaxed);
@@ -1059,7 +1059,7 @@ index 7cfc540..92a743b 100644
  namespace inst::mtp {
  namespace {
  
-+constexpr const char* kAlbumTracePath = "sdmc:/switch/CyberFoil/mtp_album_debug.log";
++constexpr const char* kAlbumTracePath = "sdmc:/switch/HappyFoil/mtp_album_debug.log";
 +std::mutex g_album_trace_mutex;
 +std::atomic<u64> g_album_trace_count{0};
 +constexpr u64 kAlbumTraceMaxLines = 20000;
